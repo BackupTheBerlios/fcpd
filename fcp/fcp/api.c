@@ -1792,8 +1792,8 @@ int fcp_port_request (struct fcp_reserved *res, char *errstr)
 					   "API: fcp_port_request: error while trying to bind a"
 						" socket");
 			  sprintf (debug_msg_helper,
-					   "API: fcp_port_request: bind() call returned %i",
-					   errno);
+					   "API: fcp_port_request: bind() call returned %i: %s",
+					   errno, strerror (errno));
 			  fcp_log (LOG_ERR, debug_msg_helper);
 			  sprintf (errstr,
 					   "500 Server Internal Error: error while trying to"
@@ -1819,8 +1819,8 @@ int fcp_port_request (struct fcp_reserved *res, char *errstr)
 							" determine the port of the socket");
 				  sprintf (debug_msg_helper,
 						   "API: fcp_port_request: getsockname() call"
-							" returned %i",
-						   errno);
+							" returned %i: %s",
+						   errno, strerror (errno));
 				  fcp_log (LOG_ERR, debug_msg_helper);
 				  sprintf (errstr,
 						   "500 Server Internal Error: error while trying to"
