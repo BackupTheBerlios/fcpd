@@ -295,7 +295,7 @@ void ip2str (unsigned int address, char **rr)
 	}
   sprintf (hlp2, "%i", addrp[3]);
   hlp = strcat (hlp, hlp2);
-  sprintf (debug_msg_helper, "HELPER: ip2str(%i) returns: \"%s\"", address,
+  sprintf (debug_msg_helper, "HELPER: ip2str(%u) returns: \"%s\"", address,
 		   hlp);
   fcp_log (LOG_DEBUG, debug_msg_helper);
   *rr = hlp;
