@@ -423,3 +423,64 @@ int ip_in_acl (char *ip)
 	}
   return ret;
 }
+
+/* Small help function takes a icmp-type string looks for the icmp-seperator :
+	 and returns the type and code 0 if no code was found. If type and code
+	 are found both will be returned.
+	 Returns 0 if something is wrong, and 1 if only type was specified
+	 and 2 if type and was specified. */
+int parse_icmp_type (char *c, int *type, int *code)
+{
+	char *p, *q, *r;
+	int digit_bol = 1;
+	int i;
+	char buf[5];
+
+	/* make a copy of th string, because we modify it */
+	strncpy (buf, c, 5);
+	p = buf;
+
+	if ((q = strchr (p, ':')) == NULL)	/* is it type only */
+	{
+		if (strlen (p))			/* is the string longer 0 */
+		{
+			q = p;
+			for (i = 0; i < strlen (p); i++, q++)	/* is all digit */
+				digit_bol = digit_bol && isdigit (*q);
+			if (digit_bol)
+			{
+				*type = atoi (p);
+				*code = 0;
+				return 1;
+			}
+			else
+				return 0;
+		}
+		else
+			return 0;
+	}
+	else
+	{
+		*q = '\0';				/* cut the two strings */
+		q++;						/* and convert them like above */
+		if ((strlen (p)) && (strlen (q)))
+		{
+			r = p;
+			for (i = 0; i < strlen (p); i++, r++)
+				digit_bol = digit_bol && isdigit (*r);
+			r = q;
+			for (i = 0; i < strlen (q); i++, r++)
+				digit_bol = digit_bol && isdigit (*r);
+			if (digit_bol)
+			{
+				*type = atoi (p);
+				*code = atoi (q);
+				return 2;
+			}
+			else
+				return 0;
+		}
+		else
+			return 0;
+	}
+}

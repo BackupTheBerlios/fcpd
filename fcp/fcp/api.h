@@ -55,6 +55,7 @@ struct fcp_pme
   int tos_fld, tos_fld_def;
   int syn_flg, syn_flg_def;
   int icmp_type, icmp_type_def;
+  int icmp_code, icmp_code_def;
   int in_if, in_if_def;
   int out_if, out_if_def;
 };
@@ -78,6 +79,7 @@ struct fcp_sop
   }
   packet_modf;
   int icmp_msg, icmp_msg_def;
+  int icmp_msg_code, icmp_msg_code_def;
   int timer, timer_def;
   int reflexive, reflexive_def;
   unsigned int pri_class, pri_class_def;

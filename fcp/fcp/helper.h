@@ -72,4 +72,11 @@ struct name_value *scan_csv (char *string);
    error it returns 0. */
 int ip_in_acl (char *ip);
 
+/* Small help function takes a icmp-type string c looks for the icmp-seperator
+	 : and returns the type and code 0 if no code was found. If type and code
+	 are found both will be returned.
+	 Returns 0 if something is wrong, and 1 if only type was specified
+	 and 2 if type and was specified. */
+int parse_icmp_type (char *c, int *type, int *code);
+
 #endif

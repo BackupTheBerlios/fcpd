@@ -78,9 +78,9 @@ type=DATA
 
 [Workspace_1]
 browser_file=file:/home/lando/.kde2/share/apps/kdevelop/search_result.html
-cpp_file=/home/lando/studium/oks/fcp/temp/fcp/main.c
-header_file=/home/lando/studium/oks/fcp/temp/fcp-spec-19-abnf.txt
-openfiles=Unbenannt.h,Unbenannt.c,/home/lando/studium/oks/fcp/temp/fcp/main.c,/home/lando/studium/oks/fcp/temp/fcpd.conf.sample,/home/lando/studium/oks/fcp/temp/fcp-spec-19-abnf.txt
+cpp_file=/home/lando/studium/oks/fcp/src7/fcp/fcp/interpret.c
+header_file=/home/lando/studium/oks/fcp/src7/fcp/fcp/api.h
+openfiles=Unbenannt.h,Unbenannt.c,/home/lando/studium/oks/fcp/src7/fcp/fcp/main.c,/home/lando/studium/oks/fcp/src7/fcp/fcp-spec-19-abnf.txt,/home/lando/studium/oks/fcp/src7/fcp/fcp-description-19.txt,/home/lando/studium/oks/fcp/src7/fcp/fcp-examples-19.txt,/home/lando/studium/oks/fcp/src7/fcp/fcp/interpret.c,/home/lando/studium/oks/fcp/src7/fcp/fcp/helper.c,/home/lando/studium/oks/fcp/src7/fcp/fcp/helper.h,/home/lando/studium/oks/fcp/src7/fcp/fcp/api.h,/home/lando/studium/oks/fcp/src7/fcp/fcp/api.c
 show_outputview=false
 show_treeview=true
 

@@ -817,7 +817,7 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 
   char *rep, *rep_hlp, *rep_hlp2, **doublestar, *errstr;
   int ret, is_first;
-  int icmp_number, src_ip, dst_ip;
+  int src_ip, dst_ip;
   struct fcp_address_list *list;
   struct fcp_state *reflex_state;
 
@@ -1017,26 +1017,23 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 					};
 				  break;
 				case fcp_token_ICMPTYPE:
-				  icmp_number = atoi (pairs->value);
-				  /* the if clause is derived from ipchains and should be
-				     addapted to RCF? in *future* */
-				  if ((icmp_number < 0) || (icmp_number == 1)
-					  || (icmp_number == 2) || (icmp_number == 6)
-					  || (icmp_number == 7) || (icmp_number == 15)
-					  || (icmp_number == 16) || (icmp_number > 18))
+					if ((ret = parse_icmp_type (pairs->value, &pme->icmp_type,
+																			&pme->icmp_code)) != 0)
 					{
-					  sprintf (rep,
-							   "FCP=%s SEQ=%i 400 Bad Request: invalid %s "
-                               "specified",
-							   FCP_VERSION, seq, token_names[res]);
-					  *rep_input = rep;
-					  FCP_FREE_MEM return 1;
+						if (ret == 1)
+							pme->icmp_type_def = 1;
+						if (ret == 2)
+							pme->icmp_type_def = pme->icmp_code_def = 1;
 					}
-				  else
+					else
 					{
-					  pme->icmp_type = icmp_number;
-					  pme->icmp_type_def = 1;
-					};
+						sprintf (rep,
+									"FCP=%s SEQ=%i 400 Bad Request: invalid %s "
+									"specified",
+									FCP_VERSION, seq, token_names[res]);
+						*rep_input = rep;
+						FCP_FREE_MEM return 1;
+					}
 				  break;
 				case fcp_token_ININTERFACE:
 				  pme->in_if_def = 1;
@@ -1518,20 +1515,24 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 				  *rep_input = rep;
 				  FCP_FREE_MEM return 1;
 				}
-			  sop->icmp_msg_def = 1;
-			  sop->icmp_msg = atoi (pairs->value);
-			  if ((sop->icmp_msg < 0) || (sop->icmp_msg > 42))
-				/* warning: took random number - what are allowed
-				   icmp-messages? */
+				if ((ret = parse_icmp_type (pairs->value, &sop->icmp_msg,
+																		&sop->icmp_msg_code)) != 0)
 				{
-				  sprintf (rep,
-						   "FCP=%s SEQ=%i 400 Bad Request: %s must be 0 .. 42"
-                           " (really ;-)",
-						   FCP_VERSION, seq, token_names[res]);
-				  *rep_input = rep;
-				  FCP_FREE_MEM return 1;
+					if (ret == 1)
+						sop->icmp_msg_def = 1;
+					if (ret == 2)
+						sop->icmp_msg_def = sop->icmp_msg_code_def = 1;
 				}
-			  break;
+				else
+				{
+					sprintf (rep,
+								"FCP=%s SEQ=%i 400 Bad Request: invalid %s "
+								"specified",
+								FCP_VERSION, seq, token_names[res]);
+					*rep_input = rep;
+					FCP_FREE_MEM return 1;
+				}
+				break;
 
 			case fcp_token_TIMER:
 			  if ((in_where == fcp_in_SETOPTS) || (in_where == fcp_in_PCKMODF)
@@ -1717,7 +1718,7 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 				  // pme->src_pt_def = 1
 				  if (!parse_tcp_ports
 					  (pairs->value, &(reserved->origin_port),
-					   &(reserved->origin_port)))
+					   &(reserved->origin_uppt)))
 					{
 					  sprintf (rep,
 							   "FCP=%s SEQ=%i 400 Bad Request: %s is invalid",

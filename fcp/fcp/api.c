@@ -147,28 +147,25 @@ static struct ipt_entry *state_to_iptentry (struct fcp_state *state,
      indicates if the srcip in member of the internal ips. */
   int target_b, match_b, return_val, intf_name_size;
 
-  /* ugly, but don't wan't to copy this code three times */
-  void create_match ()
-  {
-	/* allocate memory or report error if it fails */
-	match = malloc (match_size);
-	if (!match)
-	  {
-		fcp_log (LOG_CRIT,
-				 "API: state_to_iptentry: couldn't allocate memory for match");
-		sprintf (error,
-				 "500 Server Internal Error: couldn't allocate memory");
-		free (fw);
-		if (target_b)
-		  free (target);
-		return_val = 0;
-	  }
-	/* null the allocated memory, set the sizes, and indicate that we have a
-	   match sturcture now */
-	memset (match, 0, match_size);
-	match->u.user.match_size = match_size;
-	match->u.match_size = match_size;
-	match_b = 1;
+	/* ugly, but don't wan't to copy this code three times */
+	void create_match ()
+	{
+		/* allocate memory or report error if it fails */
+		match = malloc (match_size);
+		if (!match)
+		{
+			fcp_log (LOG_CRIT,
+					 "API: state_to_iptentry: couldn't allocate memory for match");
+			sprintf (error,
+					 "500 Server Internal Error: couldn't allocate memory");
+			return_val = 0;
+		}
+		/* null the allocated memory, set the sizes, and indicate that we have a
+			 match sturcture now */
+		memset (match, 0, match_size);
+		match->u.user.match_size = match_size;
+		match->u.match_size = match_size;
+		match_b = 1;
   }
 
   /* initalies the local variables correct */
@@ -412,37 +409,69 @@ static struct ipt_entry *state_to_iptentry (struct fcp_state *state,
 		  target->u.target_size = target_size;
 		  target_b = 1;
 
-		  /* the target is REJECT and set pointer so that we can fill it */
-		  strcpy (target->u.user.name, "REJECT");
-		  rej = (struct ipt_reject_info *) target->data;
-		  /* switch the requested icmp message if one is requested */
-		  if (fcp.sop->icmp_msg_def)
+			/* the target is REJECT and set pointer so that we can fill it */
+			strcpy (target->u.user.name, "REJECT");
+			rej = (struct ipt_reject_info *) target->data;
+			if (fcp.sop->icmp_msg_def)
 			{
-			  switch (fcp.sop->icmp_msg)
+				/* only destination unreachable is supported */
+				if (fcp.sop->icmp_msg == 3)
 				{
-				case 0:
-				  rej->with = IPT_ICMP_ECHOREPLY;
-				  break;
-				case 3:
-				  rej->with = IPT_ICMP_NET_UNREACHABLE;
-				  break;
-				default:
-				  sprintf (debug_msg_helper,
-						   "API: Unsupported icmp message (%i) requested",
-						   fcp.sop->icmp_msg);
-				  fcp_log (LOG_WARNING, debug_msg_helper);
-				  sprintf (error,
-						   "501 Not Implemented: %i as icmp message is not"
-                           " supported by iptables",
-						   fcp.sop->icmp_msg);
-				  return_val = 0;
-				  break;
+					if (fcp.sop->icmp_msg_code_def)
+					{
+						/* switch the requested icmp message code if one is requested */
+						switch (fcp.sop->icmp_msg_code)
+						{
+							case 0:
+								rej->with = IPT_ICMP_NET_UNREACHABLE;
+								break;
+							case 1:
+								rej->with = IPT_ICMP_HOST_UNREACHABLE;
+								break;
+							case 2:
+								rej->with = IPT_ICMP_PROT_UNREACHABLE;
+								break;
+							case 3:
+								rej->with = IPT_ICMP_PORT_UNREACHABLE;
+								break;
+							case 9:
+								rej->with = IPT_ICMP_NET_PROHIBITED;
+								break;
+							case 10:
+								rej->with = IPT_ICMP_HOST_PROHIBITED;
+								break;
+							default:
+								sprintf (debug_msg_helper,
+										"API: Unsupported icmp message code (%i) requested",
+										fcp.sop->icmp_msg_code);
+								fcp_log (LOG_WARNING, debug_msg_helper);
+								sprintf (error,
+									"402 Invalid Control State Field Value: unknown/unsurported"
+									" ICMP message code");
+								return_val = 0;
+								break;
+						}
+					}
+					/* no type requested so we take our default */
+					else
+						rej->with = IPT_ICMP_HOST_UNREACHABLE;
+				}
+				else
+				{
+					sprintf (debug_msg_helper,
+								"API: Unsupported icmp message (%i) requested",
+								fcp.sop->icmp_msg);
+					fcp_log (LOG_WARNING, debug_msg_helper);
+					sprintf (error,
+								"402 Invalid Control State Field Value: unknown/unsurported"
+								" ICMP message type");
+					return_val = 0;
 				}
 			}
-		  /* default if protocol is icmp but no message was requested is host
-		     unreachebale, what else... ;-) */
-		  else
-			rej->with = IPT_ICMP_HOST_UNREACHABLE;
+			/* default if protocol is icmp but no message was requested is host
+				 unreachebale, what else... ;-) */
+			else
+				rej->with = IPT_ICMP_HOST_UNREACHABLE;
 		}
 	}
 
@@ -532,71 +561,71 @@ static struct ipt_entry *state_to_iptentry (struct fcp_state *state,
                    " (only one interface was specified)");
 		  return_val = 0;
 		}
-	  /* If all checks above are ok copy the strings */
-	  if (return_val)
+		/* If all checks above are ok copy the strings */
+		if (return_val)
 		{
-		  /* If the packet comes from loopback or we make SNAT we can only
-		     specifie an out interface */
-		  if (fcp.pme->in_if == FCP_INTERFACE_LOOPBACK ||
-			  (option == 1 && fcp.pme->out_if_def &&
-			   (fcp.direction == IN_OUT || fcp.direction == IN_DMZ)))
-			switch (fcp.pme->out_if)
-			  {
-			  case FCP_INTERFACE_IN:
-				strcpy (fw->ip.outiface, fcp_in_interface.name);
-				break;
-			  case FCP_INTERFACE_OUT:
-				strcpy (fw->ip.outiface, fcp_out_interface.name);
-				break;
-			  case FCP_INTERFACE_DMZ:
-				strcpy (fw->ip.outiface, fcp_dmz_interface.name);
-				break;
-			  }
-		  /* If the packet goes to loopback or we make DNAT we can only
-		     specifie an in interface */
-		  else if (fcp.pme->out_if == FCP_INTERFACE_LOOPBACK ||
-				   (option == 1 && fcp.pme->in_if_def &&
-					(fcp.direction = OUT_IN || fcp.direction == DMZ_IN)))
-			switch (fcp.pme->in_if)
-			  {
-			  case FCP_INTERFACE_IN:
-				strcpy (fw->ip.iniface, fcp_in_interface.name);
-				break;
-			  case FCP_INTERFACE_OUT:
-				strcpy (fw->ip.iniface, fcp_out_interface.name);
-				break;
-			  case FCP_INTERFACE_DMZ:
-				strcpy (fw->ip.iniface, fcp_dmz_interface.name);
-				break;
-			  }
-		  /* we route the packet only so it goes through two interfaces and
-		     we switch both. if both interfaces are equal are checked at
-		     validity */
-		  else
-			{
-			  switch (fcp.pme->in_if)
+			/* If the packet comes from loopback or we make SNAT we can only
+				 specifie an out interface */
+			if (fcp.pme->in_if == FCP_INTERFACE_LOOPBACK ||
+					(option == 1 && fcp.pme->out_if_def &&
+					(fcp.direction == IN_OUT || fcp.direction == IN_DMZ)))
+				switch (fcp.pme->out_if)
 				{
-				case FCP_INTERFACE_IN:
-				  strcpy (fw->ip.iniface, fcp_in_interface.name);
-				  break;
-				case FCP_INTERFACE_OUT:
-				  strcpy (fw->ip.iniface, fcp_out_interface.name);
-				  break;
-				case FCP_INTERFACE_DMZ:
-				  strcpy (fw->ip.iniface, fcp_dmz_interface.name);
-				  break;
+					case FCP_INTERFACE_IN:
+						strcpy (fw->ip.outiface, fcp_in_interface.name);
+						break;
+					case FCP_INTERFACE_OUT:
+						strcpy (fw->ip.outiface, fcp_out_interface.name);
+						break;
+					case FCP_INTERFACE_DMZ:
+						strcpy (fw->ip.outiface, fcp_dmz_interface.name);
+						break;
 				}
-			  switch (fcp.pme->out_if)
+			/* If the packet goes to loopback or we make DNAT we can only
+				 specifie an in interface */
+			else if (fcp.pme->out_if == FCP_INTERFACE_LOOPBACK ||
+					(option == 1 && fcp.pme->in_if_def &&
+					(fcp.direction = OUT_IN || fcp.direction == DMZ_IN)))
+				switch (fcp.pme->in_if)
 				{
-				case FCP_INTERFACE_IN:
-				  strcpy (fw->ip.outiface, fcp_in_interface.name);
-				  break;
-				case FCP_INTERFACE_OUT:
-				  strcpy (fw->ip.outiface, fcp_out_interface.name);
-				  break;
-				case FCP_INTERFACE_DMZ:
-				  strcpy (fw->ip.outiface, fcp_dmz_interface.name);
-				  break;
+					case FCP_INTERFACE_IN:
+						strcpy (fw->ip.iniface, fcp_in_interface.name);
+						break;
+					case FCP_INTERFACE_OUT:
+						strcpy (fw->ip.iniface, fcp_out_interface.name);
+						break;
+					case FCP_INTERFACE_DMZ:
+						strcpy (fw->ip.iniface, fcp_dmz_interface.name);
+						break;
+				}
+			/* we route the packet only so it goes through two interfaces and
+				 we switch both. if both interfaces are equal are checked at
+				 validity */
+			else
+			{
+				switch (fcp.pme->in_if)
+				{
+					case FCP_INTERFACE_IN:
+						strcpy (fw->ip.iniface, fcp_in_interface.name);
+						break;
+					case FCP_INTERFACE_OUT:
+						strcpy (fw->ip.iniface, fcp_out_interface.name);
+						break;
+					case FCP_INTERFACE_DMZ:
+						strcpy (fw->ip.iniface, fcp_dmz_interface.name);
+						break;
+				}
+				switch (fcp.pme->out_if)
+				{
+					case FCP_INTERFACE_IN:
+						strcpy (fw->ip.outiface, fcp_in_interface.name);
+						break;
+					case FCP_INTERFACE_OUT:
+						strcpy (fw->ip.outiface, fcp_out_interface.name);
+						break;
+					case FCP_INTERFACE_DMZ:
+						strcpy (fw->ip.outiface, fcp_dmz_interface.name);
+						break;
 				}
 			}
 		  /* If we have filled in an in interface we have to set the mask */
@@ -630,9 +659,9 @@ static struct ipt_entry *state_to_iptentry (struct fcp_state *state,
 	  /* set the match size and call the ugly function above */
 	  match_size =
 		IPT_ALIGN (sizeof (struct ipt_entry_match) + sizeof (struct ipt_tcp));
-	  create_match ();
-	  if (!return_val)
-		return NULL;
+		create_match ();
+		if (!return_val)
+			return NULL;
 
 	  /* we want to match TCP and set the pointer to fill the structure */
 	  strcpy (match->u.user.name, "tcp");
@@ -694,9 +723,9 @@ static struct ipt_entry *state_to_iptentry (struct fcp_state *state,
 	  /* set the size and call the ugly function above */
 	  match_size =
 		IPT_ALIGN (sizeof (struct ipt_entry_match) + sizeof (struct ipt_udp));
-	  create_match ();
-	  if (!return_val)
-		return NULL;
+		create_match ();
+		if (!return_val)
+			return NULL;
 
 	  /* we have a UDP match and set the pointer to it */
 	  strcpy (match->u.user.name, "udp");
@@ -745,24 +774,110 @@ static struct ipt_entry *state_to_iptentry (struct fcp_state *state,
      match structure */
   if (fcp.pme->proto == 1 && fcp.pme->icmp_type_def)
 	{
-	  struct ipt_icmp *icmp;
+		struct ipt_icmp *icmp;
+		int supported = 1;
 
-	  /* set the match size and call the ugly function above to allocate the
-	     memory */
-	  match_size =
-		IPT_ALIGN (sizeof (struct ipt_entry_match) +
-				   sizeof (struct ipt_icmp));
-	  create_match ();
-	  if (!return_val)
-		return NULL;
+		/* check if the icmp type and code are supported by netfilter. */
+		switch (fcp.pme->icmp_type)
+		{
+			case 0:		// echo-reply
+				if (fcp.pme->icmp_code_def)
+					supported = 0;
+				break;
+			case 3:		// destination-unreachable
+				if (fcp.pme->icmp_code_def && (fcp.pme->icmp_code > 15
+						|| fcp.pme->icmp_code < 0 || fcp.pme->icmp_code == 8))
+					supported = 0;
+				break;
+			case 4:		// source-quench
+				if (fcp.pme->icmp_code_def)
+					supported = 0;
+				break;
+			case 5:		// redirect
+				if (fcp.pme->icmp_code_def && (fcp.pme->icmp_code < 0
+						|| fcp.pme->icmp_code > 3))
+					supported = 0;
+				break;
+			case 8:		// echo-request
+				if (fcp.pme->icmp_code_def)
+					supported = 0;
+				break;
+			case 9:		// router-advertisment
+				if (fcp.pme->icmp_code_def)
+					supported = 0;
+				break;
+			case 10:	// router-solicitation
+				if (fcp.pme->icmp_code_def)
+					supported = 0;
+				break;
+			case 11:	// time-exceeded
+				if (fcp.pme->icmp_code_def && (fcp.pme->icmp_code != 0
+						|| fcp.pme->icmp_code != 1))
+					supported = 0;
+				break;
+			case 12:	// parameter-problem
+				if (fcp.pme->icmp_code_def && (fcp.pme->icmp_code != 0
+						|| fcp.pme->icmp_code != 1))
+					supported = 0;
+				break;
+			case 13:	// timestamp-request
+				if (fcp.pme->icmp_code_def)
+					supported = 0;
+				break;
+			case 14:	// timestamp-reply
+				if (fcp.pme->icmp_code_def)
+					supported = 0;
+				break;
+			case 17:	// address-mask-request
+				if (fcp.pme->icmp_code_def)
+					supported = 0;
+				break;
+			case 18:	// address-mask-reply
+				if (fcp.pme->icmp_code_def)
+					supported = 0;
+				break;
+			default:
+				supported = 0;
+				break;
+		}
 
-	  /* we want ICMP and set the pointer to the ICMP structure */
-	  strcpy (match->u.user.name, "icmp");
-	  icmp = (struct ipt_icmp *) match->data;
+		if (supported)
+		{
+			/* set the match size and call the ugly function above to allocate the
+				 memory */
+			match_size =
+			IPT_ALIGN (sizeof (struct ipt_entry_match) +
+									sizeof (struct ipt_icmp));
+			create_match ();
+			if (!return_val)
+				return NULL;
 
-	  /* a type was requested, a code isn't in the protocol so set it to any */
-	  icmp->type = fcp.pme->icmp_type;
-	  icmp->code[1] = 0xff;
+			/* we want ICMP and set the pointer to the ICMP structure */
+			strcpy (match->u.user.name, "icmp");
+			icmp = (struct ipt_icmp *) match->data;
+
+			/* a type was requested */
+			icmp->type = fcp.pme->icmp_type;
+			/* copy the icmp code if it was defined, otherwise set it to any */
+			if (fcp.pme->icmp_code_def)
+				icmp->code[0] = icmp->code[1] = fcp.pme->icmp_code;
+			else
+				icmp->code[1] = 0xFF;
+		}
+		else
+		{
+			sprintf (debug_msg_helper,
+						"API: Unsupported icmp type (%i:%i) requested",
+						fcp.pme->icmp_type, fcp.pme->icmp_code);
+			fcp_log (LOG_WARNING, debug_msg_helper);
+			sprintf (error,
+							"402 Invalid Control State Field Value: unknown/unsurported"
+							" ICMP type or code in PME");
+			free (fw);
+			free (target);
+			if (match_b) free (match);
+			return NULL;
+		}
 	}
 
   /* if tos is set in the PME, we have to build aother match */
@@ -811,13 +926,16 @@ static struct ipt_entry *state_to_iptentry (struct fcp_state *state,
 			  match_b = 1;
 			}
 		}
-	  else
+		else
 		{
-		  sprintf (error,
-				   "402 Invalid Control State Field Value: unknown/unsurported"
-                   " type of service (TOS) %u in PME",
-				   fcp.pme->tos_fld);
-		  return NULL;
+			sprintf (error,
+							"402 Invalid Control State Field Value: unknown/unsurported"
+							" type of service (TOS) %u in PME",
+							fcp.pme->tos_fld);
+			free (fw);
+			free (target);
+			if (match_b) free (match);
+			return NULL;
 		}
 	}
 
@@ -894,56 +1012,59 @@ static struct ipt_entry *state_to_iptentry (struct fcp_state *state,
 		}
 	}
 
-  /* everything should be set up correct, now calculate how big the returned
-     structure have to be */
-  ret_size = fw_size;
-  if (match_b)
-	ret_size += match_size;
-  if (target_b)
-	ret_size += target_size;
+	/* everything should be set up correct, now calculate how big the returned
+		 structure have to be */
+	ret_size = fw_size;
+	if (match_b)
+		ret_size += match_size;
+	if (target_b)
+		ret_size += target_size;
 
-  /* allocate the memory for the return and null it */
-  ret = malloc (ret_size);
-  if (!ret)
+	/* allocate the memory for the return and null it */
+	ret = malloc (ret_size);
+	if (!ret)
 	{
-	  fcp_log (LOG_CRIT,
-			   "API: state_to_iptentry: couldn't allocate memory for ret");
-	  sprintf (error, "500 Server Internal Error: couldn't allocate memory");
-	  free (fw);
-	  if (target_b)
-		free (target);
-	  if (match_b)
+		fcp_log (LOG_CRIT,
+					"API: state_to_iptentry: couldn't allocate memory for ret");
+		sprintf (error, "500 Server Internal Error: couldn't allocate memory");
+		free (fw);
+		if (target_b)
+			free (target);
+		if (match_b)
+			free (match);
+		return NULL;
+	}
+	memset (ret, 0, ret_size);
+
+	/* copy the header (ipt_entry) and free it */
+	memcpy (ret, fw, fw_size);
+	free (fw);
+
+	/* set the offsets in the header of the return */
+	ret->target_offset = fw_size + match_size;
+	ret->next_offset = ret_size;
+
+	/* if we have a match copy it to the return and free the old */
+	if (match_b)
+	{
+		memcpy ((void *) ret + fw_size, match, match_size);
 		free (match);
-	  return NULL;
 	}
-  memset (ret, 0, ret_size);
-
-  /* copy the header (ipt_entry) and free it */
-  memcpy (ret, fw, fw_size);
-  free (fw);
-
-  /* set the offsets in the header of the return */
-  ret->target_offset = fw_size + match_size;
-  ret->next_offset = ret_size;
-
-  /* if we have a match copy it to the return and free the old */
-  if (match_b)
+	/* if we have a target (i known that we always have one) copy and free it */
+	if (target_b)
 	{
-	  memcpy ((void *) ret + fw_size, match, match_size);
-	  free (match);
-	}
-  /* if we have a target (i known that we always have one) copy and free it */
-  if (target_b)
-	{
-	  memcpy ((void *) ret + ret->target_offset, target, target_size);
-	  free (target);
+		memcpy ((void *) ret + ret->target_offset, target, target_size);
+		free (target);
 	}
 
-  /* if an error occured return nothing, otherwise return the hole strucutre */
-  if (return_val)
-	return ret;
-  else
-	return NULL;
+	/* if an error occured return nothing, otherwise return the hole strucutre */
+	if (return_val)
+		return ret;
+	else
+	{
+		free (ret);
+		return NULL;
+	}
 };
 
 /* allocate memory for a delete mask, set bits in high, and return the
