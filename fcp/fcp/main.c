@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <sys/stat.h>
+#include <limits.h>
 
 #include "main.h"
 #include "debug.h"
@@ -231,6 +232,12 @@ int daemon_init (void)
   FILE *pid_file;
   pid_t pid;
   char pid_file_line[7];
+  int i;
+#ifdef OPEN_MAX
+  static int openmax = OPEN_MAX;
+#else
+  static int openmax = 0;
+#endif
 
   /* check for existing pid-file */
   pid_file = fopen (FCP_DEAMON_FILE, "r");
@@ -258,6 +265,15 @@ int daemon_init (void)
   setsid ();					/* become session leader */
   chdir ("/");					/* change working directory */
   umask (0);					/* clear our file mode creation mask */
+
+  if ((openmax == 0) || ((openmax=sysconf(_SC_OPEN_MAX)) < 0)) {
+    for (i=0; i < 256; i++)
+	  close(i);
+  }
+  else {
+    for (i=0; i < openmax; i++)
+	  close(i);
+  }
 
   /* creating a pidfile under /var/run */
   pid = getpid ();
