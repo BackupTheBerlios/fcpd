@@ -7,8 +7,8 @@ Firewall: external-IP = 168.56.34.2
 First query a NAT block with the non-public-IP and ports of UA1 (caller).
 
 Request:
-  QUERYNAT Fcp=1.0 Seq=394 <CRLF>
-  Srcip=192.168.99.3; Scrport=3333-3334; Proto=17; <CRLF>
+  QUERYNAT FCP=1.0 SEQ=394 <CRLF>
+  SRCIP=192.168.99.3; SRCPORT=3333-3334; PROTO=17; <CRLF>
   <CRLF>
 
 Response:
@@ -24,9 +24,9 @@ So use as SRC the same values as in the Querynat request, and put the IP and Por
 of the UA2 as DST values.
 
 Request:
-  SET Fcp=1.0 Seq=395 <CRLF>
-  PME Proto=17; Scrip=192.168.99.3; Dstip=168.56.34.2; Srcport=3333-3334; Dstport=5353-5354; <CRLF>
-  SOPT Action=pass, Tosfld=4; Timer=30 <CRLF>
+  SET FCP=1.0 SEQ=395 <CRLF>
+  PME Proto=17; SRCIP=192.168.99.3; DSTIP=168.56.34.2; SRCPORT=3333-3334; DSTPORT=5353-5354; <CRLF>
+  SOPT ACTION=pass, TOSFLD=4; TIMER=30 <CRLF>
   <CRLF>
 
 Response:
@@ -45,8 +45,8 @@ If the client is not NAT aware you can just send a Querynat.
 If the fcpd is configured correctly it will answer with the same values.
 
 Request:
-  QUERYNAT Fcp=1.0 Seq=101 <CRLF>
-  Srcip=217.130.254.3; Scrport=2222-2223; Proto=17; <CRLF>
+  QUERYNAT FCP=1.0 SEQ=101 <CRLF>
+  SRCIP=217.130.254.3; SRCPORT=2222-2223; PROTO=17; <CRLF>
   <CRLF>
 
 Response:
@@ -62,9 +62,9 @@ do not harm.
 For the pinhole their are the same rules as above in scenario 1.
 
 Request:
-  SET Fcp=1.0 Seq=102 <CRLF>
-  PME Proto=17; Scrip=217.130.254.3; Dstip=58.34.68.123; Srcport=2222-2223; Dstport=3456-3457; <CRLF>
-  SOPT Action=pass, Tosfld=4; Timer=30 <CRLF>
+  SET FCP=1.0 SEQ=102 <CRLF>
+  PME PROTO=17; SRCIP=217.130.254.3; DSTIP=58.34.68.123; SRCPORT=2222-2223; DSTPORT=3456-3457; <CRLF>
+  SOPT ACTION=pass, TOSFLD=4; TIMER=30 <CRLF>
   <CRLF>
 
 Response:
