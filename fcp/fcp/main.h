@@ -84,7 +84,6 @@ struct reserved_list
   struct reserved_list *next;	/* double linked list of reserved's */
   struct reserved_list *prev;
   struct fcp_reserved *res;		/* the according reservation */
-  /* *uli* extension by nils */
   struct state_list *res_state;	/* the dummy state of the reservation to make
 								   time handling. */
   struct state_list *my_state;	/* this is a link to the state of the

@@ -78,10 +78,10 @@ type=DATA
 
 [Workspace_1]
 browser_file=file:/home/lando/.kde2/share/apps/kdevelop/search_result.html
-cpp_file=/home/lando/studium/oks/fcp/src7/fcp/fcp/interpret.c
-header_file=/home/lando/studium/oks/fcp/src7/fcp/fcp/api.h
-openfiles=Unbenannt.h,Unbenannt.c,/home/lando/studium/oks/fcp/src7/fcp/fcp/main.c,/home/lando/studium/oks/fcp/src7/fcp/fcp-spec-19-abnf.txt,/home/lando/studium/oks/fcp/src7/fcp/fcp-description-19.txt,/home/lando/studium/oks/fcp/src7/fcp/fcp-examples-19.txt,/home/lando/studium/oks/fcp/src7/fcp/fcp/interpret.c,/home/lando/studium/oks/fcp/src7/fcp/fcp/helper.c,/home/lando/studium/oks/fcp/src7/fcp/fcp/helper.h,/home/lando/studium/oks/fcp/src7/fcp/fcp/api.h,/home/lando/studium/oks/fcp/src7/fcp/fcp/api.c
-show_outputview=false
+cpp_file=/home/lando/studium/oks/fcp/src7/fcp/fcp/api.c
+header_file=/home/lando/studium/oks/fcp/src7/fcp/fcp/main.h
+openfiles=Unbenannt.h,Unbenannt.c,/home/lando/studium/oks/fcp/src7/fcp/fcp/main.c,/home/lando/studium/oks/fcp/src7/fcp/fcp/api.h,/home/lando/studium/oks/fcp/src7/fcp/fcp/configure.h,/home/lando/studium/oks/fcp/src7/fcp/fcp/main.h,/home/lando/studium/oks/fcp/src7/fcp/fcp/debug.h,/home/lando/studium/oks/fcp/src7/fcp/fcp/helper.h,/home/lando/studium/oks/fcp/src7/fcp/fcp/interpret.h,/home/lando/studium/oks/fcp/src7/fcp/fcp/network.h,/home/lando/studium/oks/fcp/src7/fcp/fcp/parse.h,/home/lando/studium/oks/fcp/src7/fcp/fcp/validity.h,/home/lando/studium/oks/fcp/src7/fcp/fcp/configure.c,/home/lando/studium/oks/fcp/src7/fcp/fcp/api.c
+show_outputview=true
 show_treeview=true
 
 [fcp-description-19.txt]

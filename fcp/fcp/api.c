@@ -33,6 +33,7 @@
 #include <linux/netfilter_ipv4/ipt_limit.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <unistd.h>
 #else
 #include <libipfwc/ipfwc_kernel_headers.h>
 #include <libipfwc/libipfwc.h>
@@ -1532,9 +1533,69 @@ int fcp_rule_delete (struct fcp_state *state, char *errstr)
 			}
 		}
 	  else						/* state_to_iptentry failed */
-		return 0;
+			return 0;
 	  free (entry);
 	  handle = NULL;
+	}
+
+	/* If we have to masquerade this rule delete the masq rule first */
+	if (state->masq_ip)
+	{
+		handle = iptc_init (nat_table);
+		if (!handle)
+		{
+			fcp_log (LOG_ERR, "API: couldn't get handle for the table nat");
+			fcp_log (LOG_ERR, "API: maybe missing iptable_nat or ip_conntrack module ?!");
+			sprintf (errstr, "502 Service Unavailable: NAT support missing ?!");
+			return 0;
+		}
+		set_chain_label (state, &default_chain, 1);
+		fcp_log (LOG_DEBUG, "API: trying to convert state into ipt_entry for masq");
+		if ((entry = state_to_iptentry (state, errstr, 1)) != NULL)
+		{
+			mask = make_delete_mask (entry->next_offset);
+			if (!mask)
+			{
+				fcp_log (LOG_CRIT, "API: couldn't allocate memory for the deletion mask");
+				sprintf (errstr, "500 Server Internal Error: couldn't allocate memory");
+				return 0;
+			}
+			fcp_log (LOG_DEBUG, "API: trying to delete masq rule with iptc_delete_entry");
+			ret = iptc_delete_entry (default_chain, entry, mask, &handle);
+			if (ret)
+			{
+				fcp_log (LOG_DEBUG, "API: masq rule succesfull deleted");
+				if (iptc_commit (&handle))
+					fcp_log (LOG_DEBUG, "API: masq commit succesfull");
+				else
+				{
+					sprintf (debug_msg_helper, "API: masq commit failed with %i", errno);
+					fcp_log (LOG_ERR, debug_msg_helper);
+					sprintf (debug_msg_helper, "API: %s", iptc_strerror(errno));
+					fcp_log (LOG_ERR, debug_msg_helper);
+					sprintf (errstr, "500 Server Internal Error: rule commit returned %i",
+										errno);
+					free (entry);
+					return 0;
+				}
+			}
+			else
+			{
+				sprintf (debug_msg_helper, "API: iptc_delete_entry for masq retuned %i",
+									errno);
+				fcp_log (LOG_ERR, debug_msg_helper);
+				sprintf (debug_msg_helper, "API: %s", iptc_strerror (errno));
+				fcp_log (LOG_ERR, debug_msg_helper);
+				sprintf (errstr, "500 Server Internal Error: rule delete returned %i",
+									errno);
+				free (entry);
+				return 0;
+			}
+		}
+		else /* state_to_iptentry failed */
+			return 0;
+		free (entry);
+		handle = NULL;
 	}
 
   /* trying to get the handle for the default table */

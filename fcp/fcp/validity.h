@@ -21,10 +21,10 @@
 #include "api.h"
 #include "main.h"
 
-/* this function take a state which has been interpreted and checks for */
-/* inconsistencies of a request */
-/* return value of 0 means validity - 1 means error */
-/* in case of error: repl contains the reply with the error message */
+/* this function take a state which has been interpreted and checks for
+	 inconsistencies of a request
+	 return value of 0 means validity - 1 means error
+	 in case of error: repl contains the reply with the error message */
 int check_validity (struct fcp_state *, char *reply);
 
 #endif

@@ -17,10 +17,6 @@
 #ifndef configure_h
 #define configure_h 1
 
-/* the path and name of the config file. change it to your prefert */
-/* #define FCP_CONFIG_FILE "/etc/fcpd.conf" */
-/* moved to main.h */
-
 /* how much characters per line are read. make it bigger if needed */
 #define FCP_CONFIGURE_LINE_LENGTH 140
 

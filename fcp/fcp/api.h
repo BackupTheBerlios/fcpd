@@ -32,10 +32,6 @@ struct fcp_pme
 {
   /* _def indicates that this value was specified in the request */
   int proto, proto_def;
-  /* warning: proto will be used in querynat-statement too, although there's
-     no PME !!! same thing with SRCIP and SRCPRT, which are used by QUERYNAT
-     as IP and PORT !!!!!! UPPERPORT will be saved in DSTPORT - very ugly...
-     will be changed in *future* -> struct reserved */
   unsigned int src_ip;
   int src_ip_def;
   unsigned int src_netmask;
@@ -64,20 +60,10 @@ struct fcp_pme
 struct fcp_sop
 {
   int action, action_def;
-  // struct fcp_pme *packet_modf;
   struct
   {
-	// int proto, proto_def;
-	// unsigned int src_ip, dst_ip;
-	// int src_ip_def, dst_ip_def;
-	// unsigned int src_netmask, dst_netmask;
-	// int src_pt, src_pt_def;
-	// int src_uppt;
-	// int dst_pt, dst_pt_def;
-	// int dst_uppt;
-	int tos_fld, tos_fld_def;
-  }
-  packet_modf;
+		int tos_fld, tos_fld_def;
+  } packet_modf;
   int icmp_msg, icmp_msg_def;
   int icmp_msg_code, icmp_msg_code_def;
   int timer, timer_def;
@@ -103,8 +89,7 @@ enum directions
   LOOP_DMZ
 };
 
-/* this structure stores a complete state. in *future* masq_ will be used for 
-   NAT */
+/* this structure stores a complete state. masq_ is used for NAT */
 struct fcp_state
 {
   struct fcp_pme *pme;
@@ -118,7 +103,7 @@ struct fcp_state
 
 /* Is the base structure for a list, which includes the reserved ports on the
    firewall. */
-struct fcp_reserved				/* *nils* API change: added uppt's!! */
+struct fcp_reserved
 {
   unsigned int masq_ip;
   int masq_port;
@@ -126,7 +111,7 @@ struct fcp_reserved				/* *nils* API change: added uppt's!! */
   unsigned int origin_ip;
   int origin_port;
   int origin_uppt;
-  int proto;					/* *nils* API change: added uppt's!! */
+  int proto;
 };
 
 /* This structure will be returned/filled by fcp_query API call */

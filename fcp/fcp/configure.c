@@ -22,6 +22,7 @@
 #include "debug.h"
 #include "interpret.h"
 #include "configure.h"
+#include "helper.h"
 
 #define fcp_token_unknown		0
 

@@ -30,28 +30,28 @@
 
 #include "main.h"
 
-fd_set master;					// master file descriptor list
-fd_set read_fds;				// temp file descriptor list for select()
-struct sockaddr_in mytcpaddr;	// server tcp address
-struct sockaddr_in remotetcpaddr;	// client tcp address
-struct sockaddr_in myudpaddr;	// server udp address
-struct sockaddr_in remoteudpaddr;	// client udp address
-int fdmax, fdmin;				// minimum and maximum file descriptor number
-int tcplistener;				// listening tcp socket descriptor
-int udplistener;				// listening udp socket descriptor
-int newfd;						// newly accept()ed socket descriptor
-char buf[FCP_MAX_REQUEST_LENGTH];	// buffer for client data
+fd_set master;					/* master file descriptor list */
+fd_set read_fds;				/* temp file descriptor list for select() */
+struct sockaddr_in mytcpaddr;			/* server tcp address */
+struct sockaddr_in remotetcpaddr;	/* client tcp address */
+struct sockaddr_in myudpaddr;			/* server udp address */
+struct sockaddr_in remoteudpaddr;	/* client udp address */
+int fdmax, fdmin;				/* minimum and maximum file descriptor number */
+int tcplistener;				/* listening tcp socket descriptor */
+int udplistener;				/* listening udp socket descriptor */
+int newfd;							/* newly accept()ed socket descriptor */
+char buf[FCP_MAX_REQUEST_LENGTH];	/* buffer for client data */
 int nbytes;
 int addrlen;
 int i, j;
 
   /* this stores data and ips, received so far for each connection */
-char *request[FCP_MAX_REQUESTS];	// maximum parallel connections
-char *ips[FCP_MAX_REQUESTS];	// stores ip-addresses of connections
+char *request[FCP_MAX_REQUESTS];	/* maximum parallel connections */
+char *ips[FCP_MAX_REQUESTS];			/* stores ip-addresses of connections */
 int request_count[FCP_MAX_REQUESTS];
-			// signalizes if there are any full requests left in the buffer
-			// (1: yes)
-			// (0: no) or that quit has been received (-1)
+			/* signalizes if there are any full requests left in the buffer
+				 (1: yes)
+				 (0: no) or that quit has been received (-1) */
 
 /* initialize the network - creates a socket, binds to the port */
 int init_network ();
