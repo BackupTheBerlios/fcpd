@@ -1,4 +1,10 @@
-Example 1: NAT Scenario Query a NAT Block
+Scneario 1 firewall with NAT
+----------------------------
+UA1: IP = 192.168.99.3   RTP-Ports = 3333-3334
+UA2: IP = 168.56.34.2    RTP-Ports = 5353-5354
+Firewall: external-IP = 168.56.34.2
+
+First query a NAT block with the non-public-IP and ports of UA1 (caller).
 
 Request:
   QUERYNAT Fcp=1.0 Seq=394 <CRLF>
@@ -12,7 +18,10 @@ Response:
   <CRLF>
 
 
-Example 2: Open Pinhole in Firewall with(out) the NAT Block
+When the call is established open the pinhole in firewall.
+The port forwarding will be inserted automaticly on a matching SrcIP and SrcPort.
+So use as SRC the same values as in the Querynat request, and put the IP and Ports
+of the UA2 as DST values.
 
 Request:
   SET Fcp=1.0 Seq=395 <CRLF>
@@ -24,3 +33,42 @@ Response:
   Fcp=1.0 Seq=395 <CRLF>
   200 OK <CRLF>
   <CRLF>
+
+
+Scenario 2 just firewall without NAT
+------------------------------------
+UA1: IP = 217.130.254.3    RTP-Ports = 2222-2223
+UA2: IP = 58.34.68.123     RTP-Ports = 3456-3457
+Firewall: IP = 217.130.254.1
+
+If the client is not NAT aware you can just send a Querynat.
+If the fcpd is configured correctly it will answer with the same values.
+
+Request:
+  QUERYNAT Fcp=1.0 Seq=101 <CRLF>
+  Srcip=217.130.254.3; Scrport=2222-2223; Proto=17; <CRLF>
+  <CRLF>
+
+Response:
+  Fcp=1.0 Seq=101 <CRLF>
+  200 OK <CRLF>
+  Ip=217.130.254.3 Port=2222-2223 <CRLF>
+  <CRLF>
+
+Your client can learn from the response, that this IP do not have to masqueraded (no further
+Querynat's). But it could also send everytime a Querynat if the additional request/response
+do not harm.
+
+For the pinhole their are the same rules as above in scenario 1.
+
+Request:
+  SET Fcp=1.0 Seq=102 <CRLF>
+  PME Proto=17; Scrip=217.130.254.3; Dstip=58.34.68.123; Srcport=2222-2223; Dstport=3456-3457; <CRLF>
+  SOPT Action=pass, Tosfld=4; Timer=30 <CRLF>
+  <CRLF>
+
+Response:
+  Fcp=1.0 Seq=102 <CRLF>
+  200 OK <CRLF>
+  <CRLF>
+
