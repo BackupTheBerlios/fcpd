@@ -1,0 +1,26 @@
+Example 1: NAT Scenario Query a NAT Block
+
+Request:
+  QUERYNAT Fcp=1.0 Seq=394 <CRLF>
+  Srcip=192.168.99.3; Scrport=3333-3334; Proto=17; <CRLF>
+  <CRLF>
+
+Response:
+  Fcp=1.0 Seq=394 <CRLF>
+  200 OK <CRLF>
+  Ip=168.56.34.3 Port=3783-3784 <CRLF>
+  <CRLF>
+
+
+Example 2: Open Pinhole in Firewall with(out) the NAT Block
+
+Request:
+  SET Fcp=1.0 Seq=395 <CRLF>
+  PME Proto=17; Scrip=192.168.99.3; Dstip=168.56.34.2; Srcport=3333-3334; Dstport=5353-5354; <CRLF>
+  SOPT Action=pass, Tosfld=4; Timer=30 <CRLF>
+  <CRLF>
+
+Response:
+  Fcp=1.0 Seq=395 <CRLF>
+  200 OK <CRLF>
+  <CRLF>

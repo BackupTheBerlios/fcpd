@@ -1,0 +1,158 @@
+; FCP protocol grammar
+; v.019 - 2001-04-19
+;
+; - first version by Jiri Kuthan
+; - extended by Ulrich Abend + Nils Ohlmeier
+; - feedback provided by Jan Janak
+; - rewritten by Ulrich Abend
+; - ABNF according to RFC2234 by Jan Janak
+; - updated by Nils Ohlmeier
+
+fcp = *WSP ( req / resp ) eol
+
+req =  "set"      1*WSP trans-head [ pme ] [ set-opts ]
+req =/ "release"  1*WSP trans-head [ pme ]
+req =/ "query"    1*WSP trans-head [ pme ]
+req =/ "querynat" 1*WSP trans-head nat-src [ nat-dst ]
+req =/ "releasenat" 1*WSP trans-head nat-src
+
+trans-head = proto-name-ver 1*WSP trans-num eol
+
+proto-name-ver = "fcp" assign byte "." byte
+
+trans-num = "seq" assign byte
+
+pme = "pme" 1*WSP 1*( pme-member avp-sep ) eol
+
+pme-member = ip-avps / tcp-avps / udp-avps / icmp-avps
+
+ip-avps =  "proto" assign byte
+ip-avps =/ ( "srcip" / "dstip" ) assign ip-range
+ip-avps =/ "tosfld" assign byte
+
+ip-range = ip-addr [ *WSP "/" *WSP netmask ]
+
+tcp-avps =  port-avps / ( "tcpsynallowed" assign bool )
+
+upd-avps =  port-avps
+
+port-avps = ( "srcport" / "dstport" ) assign port-range
+
+port-range = word [ *WSP "-" *WSP word ]
+
+icmp-avps = "icmptype" assign byte [ icmp-sep byte ]
+
+set-opts = "sopt" 1*WSP 1*( opt avp-sep ) eol
+
+opt =  "action" assign ( pas / "drop" / rej )
+opt =/ "timer" assign word
+opt =/ "reflexive" assign bool
+opt =/ "priorityclass" assign byte
+opt =/ "log" assign byte
+
+pas = "pass" [ pas-sep "tosfld" assign byte ]
+
+rej = "reject" [ 1*WSP "icmpmessage" assign byte [ icmp-sep byte ] ]
+
+nat-src = 3*( src-member avp-sep ) eol
+
+src-member =  "proto" assign byte
+src-member =/ "srcip" assign ip-addr
+src-member =/ "srcport" assign port-range
+
+nat-dst = "dstip" assign ip-addr
+
+resp = trans-head stat-code eol
+       [ ( query-resp / nat-query-resp ) eol ]
+
+query-resp = pme set-opts *( ";" eol pme set-opts )
+
+nat-query-resp = "ip" assign ip-addr 1*WSP "port" assign port-range
+
+stat-code =  "200 OK"
+stat-code =/ "201 Keeping Alive"
+stat-code =/ "202 Rule Changed"
+stat-code =/ "203 Not My Route"
+stat-code =/ "400 Bad Request"
+stat-code =/ "401 Unauthorized"
+stat-code =/ "402 Invalid Control State Field Value"
+stat-code =/ "403 Forbidden"
+stat-code =/ "480 Priority Class Conflict"
+stat-code =/ "500 Internal Server Error"
+stat-code =/ "501 Not Implemented"
+stat-code =/ "502 Service Unavailable"
+stat-code =/ "503 Version Not Supported"
+
+;-----------------------------------------
+; Netmask specification, for example 255.255.192.0
+
+netmask = "255" "." m2
+netmask =/ m-bytes 3( "." 1*3"0" )
+         ; if not 255, only zero bytes may follow
+
+m2 =  255 "." m3
+m2 =/ mbytes 2( "." 1*3"0" )
+
+m3 =  255 "." m4
+m3 =/ mbytes "." 1*3"0"
+
+m4 =  255
+m4 =/ mbytes
+
+mbytes =  "254" / "252" / "248" / "240"
+mbytes =/ "224" / "192" / "128" / 1*3"0"
+          ; Netmask bytes can have only these values
+
+;-----------------------------------------
+
+ip-addr = 3( byte "." ) byte
+          ; IPv4 address specification
+
+assign = *WSP "=" *WSP
+          ; = optionaly surrounded by white-chars
+
+eol = *WSP crlf *WSP
+          ; End of line optionaly surrounded by white-chars
+
+avp-sep = *WSP ";" *WSP
+          ; Attribute value pair separator
+
+icmp-sep = *WSP ":" *WSP
+          ; ICMP type - code seperator
+
+pas-sep = *WSP "," *WSP
+          ; packet modfier - attribute seperator
+
+crlf = [CR] LF
+          ; End of line
+
+; Byte specification
+; i. e. values from 0 to 255 w/o leading zeroes
+byte =  "25" %x30-35
+byte =/ "2"  %x30-34 DIGIT
+byte =/ "1"  2DIGIT
+byte =/ [%x31-39] DIGIT
+
+; Word specification
+; i. e. values from 0 to 65535 w/o leading zeroes
+word =  "6553" %x30-35
+word =/ "655"  %x30-32 DIGIT
+word =/ "65" %x30-34 2DIGIT
+word =/ "6" %x30-34 3DIGIT
+word =/ [%x31-35] 4DIGIT
+word =/ %x31-39 *3DIGIT
+word =/ "0"
+
+bool = "yes" / "no"
+
+; Carriage return in ASCII
+CR = %x0D
+
+; Line feed in ASCII
+LF = %x0A
+
+; One digit (0-9) in ASCII
+DIGIT = %x30-39
+
+; White char can be space or horizontal tab
+WSP = %x20 / %x09

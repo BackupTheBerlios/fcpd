@@ -1,0 +1,147 @@
+This file describes the FCP-Server fcpd
+
+1. What is the Firewall Control Protocol FCP?
+
+FCP is a protocol, which allows remote machines to manage a systems firewall.
+It's special purpose is to support opening pinholes in a restrictive firewall
+configuration, to allow special internal hosts to communicate with special
+external machines. This is especially useful for enabling connections in a
+dynamic manner, controlled by a proxy application. IP-Telefonie is a special
+target to be addressed.
+
+2. How do I use fcpd?
+
+fcpd is installed on a firewall machine, allowing special internal hosts,
+e.g. proxies, to dynamically change filter rules. The fcp daemon is a server
+process, which will probably be run by the system init scripts. It is being
+configured by a config file.
+You will find a commented sample file called fcpd.conf.sample within the
+distribution.
+You can watch the actions of fcpd by taking a look at syslogs daemon output
+(you might want to edit syslog.conf to direct daemons output to a special
+file).
+You may specify config-file, debuglevel, and daemon mode on command line:
+
+ usage: fcpd [-h] [-d] [-l] [-v]
+  -h display this help message
+  -d don't run in dameon mode
+  -l specify debug level
+  -f specify config file
+  -v prints out protocol version number and exits
+
+3. What platforms are supported?
+
+This initial version of fcpd is based on linux-2.2 kernel. It uses ipchains
+like calls to edit the firewall rules. It will also run on linux-2.4, using
+ipchains compatibility mode (modprobe ipchains - need to compile ip-tables
+and ipchains as modules).
+The server was designed to be easily ported to other platforms by seperating
+backend from other code. Ideally it should be enough to rewrite api.c and
+recompile on any unix platform, but we didn't test that yet...
+
+4. How do I build fcpd?
+
+Get the tgz package, which has a name like fcp-0.x.tar.gz
+
+$ tar xvzf fcp-0.x.tar.gz
+$ cd fcp-0.x
+$ ./configure
+$ make
+
+then you will find the executable of fcpd in the fcp subdirectory - simply
+copy it wherever you want (e.g. /sbin/). fcpd must be run with root
+permissions because the netfilter rules need to be changed. It's not
+recommended to make fcpd set-uid.
+You also have to copy the fcpd.conf.sample to /etc/fcpd.conf and modifiy 
+it to your wishes or start always with 'fcpd -f /what/ever/you/want/file'.
+Please see the fcpd.conf.sample for the required parameters and what they
+modify.
+The fcpd rereads the fcpd.conf if he got the HUP signal. But at this time not
+all parameters (e.g. Port) will actually change after rereading.
+
+5. I want to write a client app for fcp, what must I do?
+
+First you should take a look a the protocol-specs file within the
+distribution. This file describes the complete syntax of FCP 1.0 .
+Understanding of firewall filtering rules is required to get it -
+for particular behaviour, which isn't stated at the time, simply try out.
+Then it's up to you to make use of the dynamically reconfiguration of
+the firewall.
+
+6. Security issues
+
+At this moment fcpd isn't secure at all and it should be all to easy to crash
+it or to even worse things. The administrator should configure the firewall as
+restricitive as possible, allowing only very special hosts to contact fcpd.
+Real security mechanisms will be added in future releases.
+
+7. Is it all about opening pinholes?
+
+Yes. At least at the time. The protocol allows complete remote administration
+of filtering rules and NAT settings, but the server doesn't yet. The protocol
+specification within this package shows what features are supported.
+
+8. Debugging
+
+The Loglevel specified at compile-time and overriden by the config-file entry
+controls the amount of debugging messages sent to syslog.
+You might want to change syslog to use a seperate file for daemons' log
+messages by specifiing a line in /etc/syslog.conf similar to:
+
+daemon.*                        /var/log/daemon
+
+9. Testing
+
+For testing purposes a small skript can do good work (uses netcat, which is
+sometimes called nc):
+
+#!/bin/bash
+cat testseq | netcat localhost 12345
+
+you can now edit testseq and fill it with a procol command. Watch syslog
+and/or ipchains -L for the results of your command sequence.
+To evaluate the timeout feature of fcpd, a console running the command
+
+$ watch ipchains -nL
+
+might do good work.
+
+10. Performance Issues
+
+A first test has given the following results:
+if logging is reduced to minimum (level 5) 60-80 processed request on an 
+700 MHz PC over the loopback device are possible. But the requests were only 
+inserting and deleting the same rule every time (means one connection with 2 
+request, then a new connection). This isn't the hardest for the deamon.
+
+In a second performance test the fcpd has proven the ability to handle about 
+330 Requests per Second on a 750 Mhz CPU. There have been taken 5 Clients on 
+a remote host inserting repeatingly 30 rules and removing them directly
+after inserting (means one connection with 60 request, then the next client).
+
+In a test which simulates a proxy (one client on another computer than the 
+server, with one connection over the hole test) the fcpd (with loglevel 4) has 
+handled 4000 requests per second on 700 MHz CPU. (The requests were inserting 
+and deleting every time the same rule, so the fcpd haven't to handle much 
+rules, and caching effects of the os can't be excluded.)
+
+As you can see opening and closeing of TCP connections limiting the server more
+than the amount of the requests.
+
+11. Authors
+
+Nils Ohlmeier, lando@cs.tu-berlin.de
+Ulrich Abend, ullstar@cs.tu-berlin.de
+
+Please contact the authors for any useful purpose.
+
+12. Credits
+
+The package makes use of excerpts from Easytcpiplib-0.4 from Marcelo Gornstein.
+Homepage: members.xoom.com/mgornstein - thanks.
+The ipchains headers are used from the ipchains-package - thanks.
+
+13. License
+
+This package is distributed under the GPL.
+We hope it'll be useful.

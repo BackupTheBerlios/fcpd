@@ -1,0 +1,130 @@
+FCP protocol description
+v.019 - 2001-04-19
+
+SET:
+    * inserts a rule according to the PME, _after_ a QUERYNAT returned an ip-
+      address and port.
+    * is also for used for keep-alive messages by using the timer (s.b.)
+
+RELEASE:
+    * deletes a rule, which was inserted by SET
+
+QUERY:
+    * returns all rules matching the PME
+    * if there's no PME defined, all rules will be returned
+
+QUERYNAT:
+    * queries for NAT, by retrieving ip-adress and port for the protocol from
+      the fcp-server
+    * the result is either the local ip and port (in case there's no NAT used)
+      or a reserved but not yet connected port on the firewall, which will be
+      used for the connection. Use SET to open the port and start NAT.
+    * by using a port-range, a range of Ports is assigned for the range of
+      clients' Ports starting at PORT.
+    * if no port-range is specified, it defaults to the single Port behaviour.
+
+RELEASENAT:
+    * releases a reserved ip and port tuple for the protocol
+    * releasing the lowest port of a portrange results in releasing the hole
+      portrange
+    * deletes a NAT rule
+
+Transaction Number (SEQ):
+    * is being used by the server to refer to a clients request.
+
+PROTO:
+    * possible values: 1=ICMP 6=TCP 17=UDP (see IANA's Assigned_protocol_number)
+    * if not specified: 0=all protocols (or "no change" if used in the
+      packetmodifier context)
+    * the type of protocol this expression is according to
+    * used in QUERYNAT, a value of 1 doesn't make sense and will return status
+      code 400
+
+SRCIP:
+    * posible values ip-address: from 0.0.0.0 to 255.255.255.255
+    * posible values netmask: from 0.0.0.0 to 255.255.255.255
+    * if not specified: 0.0.0.0/0.0.0.0 (or "no change" if used in the
+      packetmodifier context)
+    * the ip-adress(es) where the packets (seem to) come from
+
+DSTIP:
+    * posible values ip-address: from 0.0.0.0 to 255.255.255.255
+    * posible values netmask: from 0.0.0.0 to 255.255.255.255
+    * if not specified: 0.0.0.0/0.0.0.0 (or "no change" if used in the
+      packetmodifier context)
+    * the destination ip-adress(es) of the packets
+
+SRCPORT:
+    * possible values port: 0 to 65535
+    * possible values port-range: "x-y" with x<y and x,y from 0 to 65535
+    * if not specified: any source port will be allowed (or "no change" if used
+      in the packetmodifier context)
+    * the source port or port range
+
+DSTPORT:
+    * possible values port: from 0 to 65535 (see IANA's Assigned_port_numbers)
+    * possible values port-range: "x-y" with x<y and x,y from 0 to 65535
+    * if not specified: any destination port will be allowed (or "no change" if
+      used in the packetmodifier context)
+    * the destination port or port range
+
+TOSFLD:
+    * possible values: frmo 0 to 255 (8 bit mask)
+    * if not specified: 0 (or "no change" if used in the packetmodifier
+      context)
+    * the type of service (see RFC1349 and RFC2474)
+
+TCPSYNALLOWED:
+    * possible values: yes, no
+    * if not specified: the SYN flag will be ignored
+    * defines whether packets with only the SYN flag set are allowed to pass
+      the firewall
+
+ICMPTYPE:
+    * possible values: all icmp types
+    * if not specified: the icmptype will be ignored while matching
+    * matches only on the specified icmp-type
+
+ACTION:
+    * possible values: pass, drop, reject
+    * if not specified: no action will be performed (besides logging if
+      specified)
+    * specifies what will be done with the packet
+
+TIMER:
+    * possible values: 0, 1 to 2^32; 0 indicates infinite timer
+    * if not specified: 60
+    * sets the timeout in seconds. a keep alive message is needed before the
+      timer exceeds.
+
+REFLEXIVE:
+    * possible values: yes, no
+    * if not specified: no
+    * sets whether the rule should be reflexive. this might not be implemented
+      within the firewall, so a return status-code 501 is possible. (Note: in
+      this case it is still possible to use TCPSYNALLOWED mentioned above)
+
+PRIORITYCLASS:
+    * possible values: 0 to 2^32 (=4294967296)
+    * if not specified: 0
+    * sets the priority class in which the rule will be inserted. Note: if
+      action doesnt match the priority class' default ACTION, status code 480
+      will be returned. Priority classes are defined within server
+      configuration. 0 means default policy.
+
+LOG:
+    * possible values: 0 to 255
+    * if not specified: 0
+    * sets the log-level for the rule. Log Levels are defined in server
+      configuration. Anyway 0 means no logging at all. Note: no error will be
+      returned if the specified log level isn't configured, instead no logging
+      is set. Logging definitions may be configured with time intervals.
+    * example configuration might be: log-level 42: log every 10 seconds if
+      there was a matching packet.
+
+ICMPMESSAGE:
+    * possible values: any of standard icmp-messages (see
+      IANA's_ICMP_assigned_number)
+    * if not specified: packet will be rejected without any ICMP message.
+    * sets the icmp message which will be returnd to the sender of the rejected
+      packet.

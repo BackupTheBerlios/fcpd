@@ -1,0 +1,84 @@
+# This is a demonstration config file for an fcpd.
+#
+# All parameters in here have to be in the form of
+# "ATTRIBUTE = VALUE".
+# There have to be on or more whitespace and/or tabulator
+# between the attribute name and the equal character.
+#
+# Attention: only 100 characters of a line are read,
+# so don't write longer parameter lines or change
+# FCP_CONFIGURE_LINE_LENGTH in configure.h if needed.
+
+
+# The port on which the server should listen.
+# Attention: changing the port of a runing server not implemeted yet.
+# If you want to change the port you'll have to kill and restart the server.
+PORT	=	12345
+
+# How much output the server producess to syslog.
+# The levels are the same as in syslog. So a value
+# of 0 will produce no output, 4 or 5 will only log
+# critical messages or warnings, 6 will also log
+# informational messages, and 7 will log everything
+# include the debug messages.
+# Only values from 0 to 7 are allowed.
+DEBUGLEVEL = 7
+
+# The default time in seconds when an inserted hole will be closed
+# if no keep allive was sent before and no TIMER was specified.
+# Values from 0 to 1000000 are allowed.
+TIMEOUT	=	60
+
+# These are the IPs of the interfaces.
+# Maybe your implementation can determine these IPs automaticly but to be sure
+# that we know these we define them here.
+# If you haven't got a demilitarized zone (DMZ) you don't have to specifie an IP
+# for it.
+IPIN	= 10.0.0.1
+IPOUT = 192.168.0.1
+IPDMZ =
+
+# Which IPs (as CSV(comma seperated values)) are allowed to connect to
+# the server. Specifing networks by giving an IP with a netmask are also
+# supported.
+ACL = 127.0.0.1,192.168.0.0/255.255.255.0,10.0.0.0/255.255.255.0
+
+# The number of priority classes.
+MAXPRIORITY	= 10
+
+# These IPs and networks (IPs with netmask) are mentioned as IPs which are
+# behind the firewall on the internal side.
+INTERNALIPS = 192.168.0.0/255.255.0.0
+
+# These IPs and networks (IPs with netmask) are mentioned as IPs which have
+# to be masqueraded (with Network Address Translation) if they want to the
+# outside of the firewall or in the DMZ.
+MASQUIPS = 192.168.0.0/255.255.0.0
+
+# These are the IPs in our DMZ
+DMZIPS	=
+
+# With the following parameters you determine how many packets per time slot
+# should be logged.
+# So at this time the log classes are restricted from 1 to 4 according to the
+# following four definitions.
+# Packets per second
+LOG_S	=	1
+# Packets per minute
+LOG_M	=	1
+# Packets per hour
+LOG_H	=	1
+# Packets per day
+LOG_D	=	2
+
+# The number of loglevel classes.
+# Because of the four log classes above this parameter is useless.
+#MAXLOG = 4
+
+# Translate the system specific interfaces
+# to the interfaces which fcp uses.
+# You can leave INTFDMZ empty if you dont have a DMZ.
+# This parameters are required for the undocumented interface command.
+#INTFIN	=	eth0
+#INTFOUT	=	eth1
+#INTFDMZ	=

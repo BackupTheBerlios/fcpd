@@ -1,0 +1,103 @@
+This document describes the way of one request through the mdoules of the fcpd
+and the structs which it uses.
+
+-------- modules ----------------
+
+### main.c ###
+First of all the fcpd will evaluate commad line arguments. Next it opens the
+syslog and installs the signal handler for the signals TERM, HUP and ALRM. After
+this it will try to become a deamon if it's not suppressed by the command line
+argument '-d' and trys to read the config file.
+
+### configure.c ###
+The reading and evaluating of the config file is handled complet in configure.
+It reads every line into a name_value struct and this pointered list of
+name_value structs is evaluated afterwards by change_config.
+
+### connection.c ###
+Next the srv_listen function will be called to make the network connections. It
+uses many functions from connection.c which are all derived from the EasyTCPIP
+Lib 0.4.
+
+### parse.c ###
+For every connection the parse function will be called. This put the function
+puts the elements of the request into a name_value list or return an error if
+it's fail.
+
+### interpret.c ###
+Next the name_value list will be given to the interpret function which
+interprets tha name value pairs and also make the changes to the firewall or the
+structs. Finaly it builds a reply to request.
+
+### debug.c ###
+This module contains only funtions for debuging and logging.
+
+### api.c ###
+This module contains all functions to insert and delete the states from/into the
+firewall. This should be the only functions that have to be rewritten for a new
+firewall backend.
+
+### validity.c ###
+This module contains a function which checks requests for plausibilty (e.g.
+port and icmp protocol make no sence).
+
+### helper.c ###
+This module contains functions which are often called by other modules (e.g.
+converting an IP; inserting in the time ordered list).
+
+
+------------ structs -----------------
+
+### name_value ###
+Only a temporary struct for the parser and configure. It's a pointered list
+where every element point at two string, normaly the parameter and it's value.
+
+### state_list ###
+A two times double linked list of all states/rules which are handled by the
+fcpd. The pointers next and prev making a simple double linked list of all
+states of the fcpd, so that it's easy to walk through all states. Time_next and
+time_prev are making a second double linked list of the states which should be
+deleted automaticly after some by the fcpd, and which is ordered by the
+remaining time. If a state should not be deleted time_next and time_prev are
+pointing to NULL and the distance_ttl is zero. Distance_ttl are the more seconds
+the state remain in the fcpd and the firewall than the state of time_prev. State
+finaly points to the according state.
+
+### state_list_base ###
+This is the first element of the normal and the time ordered linked list. It
+will never be removed and have no according state. With this element you have
+always access to the begining of the linked lists.
+
+### fcp_pme ###
+This struct have for every element of a packet matching expression a variable
+and a second with _def append to the variable name. All variables of this struct
+are set to zero and will be filled with the values of the according request. The
+_def variables will be set to one if this parameter was set in the request. Zero
+means this parameter was not requested and we have to use the default value.
+
+### fcp_sop ###
+This struct representes the parameters of the set options like in the fcp_pme.
+It also contains a pointer to a fcp_pme struct which contains the packet
+modifiers if they where requested.
+
+### fcp_state ###
+This struct contains pointers to a packet matching expression and the set
+options of one state. It also contains the IP and the port with will be used at
+network adress translation (NAT) for this state if its required. Finaly their is
+a pointer to the IP of the owner of this state for a simple access restriction.
+
+### fcp_reserved ###
+This struct will be filled with IP and port of the source and the returned IP
+and port of the firewall on a NAT Request.
+
+### fcp_query_answer ###
+This struct will be returned from the fcp_query api call. It contains pointers
+to a packet matching expression and a set option struct. The next pointers
+points on the next struct so the api call will return a pointered list of this
+struct.
+
+### connection ###
+### hostinfo ###
+### master_host_list ###
+These structs are derived from the EasyTCPIP Lib 0.4, so we are not able to
+describe them here. This code will hopefully be rewritten soon.
