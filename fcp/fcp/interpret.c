@@ -2103,7 +2103,7 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 			  else
 				{
 				  sprintf (rep,
-						   "FCP=%s SEQ=%i 200 OK\nIP=%s PORT=%i UPPERPORT=%i",
+						   "FCP=%s SEQ=%i 200 OK\nIP=%s PORT=%i-%i",
 						   FCP_VERSION, seq, *doublestar, reserved->masq_port,
 						   reserved->masq_uppt);
 				}
@@ -2590,11 +2590,18 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 	     reflexive copy and insert this also. */
 	  if (state->sop->reflexive == 1)
 		{
+			reflex_state = create_reflex (state);
 		  ret = set_action (state, rep);
 		  if (ret == 0)
 			{
-			  reflex_state = create_reflex (state);
 			  ret = set_action (reflex_state, rep);
+			}
+			else
+			{
+				free (reflex_state->pme);
+				free (reflex_state->sop);
+				free (reflex_state->owner_ip);
+				free (reflex_state);
 			}
 		}
 	  /* no reflexive so just a normal insert */

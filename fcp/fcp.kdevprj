@@ -78,9 +78,9 @@ type=DATA
 
 [Workspace_1]
 browser_file=file:/home/lando/.kde2/share/apps/kdevelop/search_result.html
-cpp_file=/home/lando/studium/oks/fcp/src7/fcp/fcp/api.c
-header_file=/home/lando/studium/oks/fcp/src7/fcp/fcp/main.h
-openfiles=Unbenannt.h,Unbenannt.c,/home/lando/studium/oks/fcp/src7/fcp/fcp/main.c,/home/lando/studium/oks/fcp/src7/fcp/fcp/api.h,/home/lando/studium/oks/fcp/src7/fcp/fcp/configure.h,/home/lando/studium/oks/fcp/src7/fcp/fcp/main.h,/home/lando/studium/oks/fcp/src7/fcp/fcp/debug.h,/home/lando/studium/oks/fcp/src7/fcp/fcp/helper.h,/home/lando/studium/oks/fcp/src7/fcp/fcp/interpret.h,/home/lando/studium/oks/fcp/src7/fcp/fcp/network.h,/home/lando/studium/oks/fcp/src7/fcp/fcp/parse.h,/home/lando/studium/oks/fcp/src7/fcp/fcp/validity.h,/home/lando/studium/oks/fcp/src7/fcp/fcp/configure.c,/home/lando/studium/oks/fcp/src7/fcp/fcp/api.c
+cpp_file=/home/lando/studium/oks/fcp/src7/fcp/fcp/main.c
+header_file=Unbenannt.h
+openfiles=Unbenannt.h,Unbenannt.c,/home/lando/studium/oks/fcp/src7/fcp/fcp/main.c
 show_outputview=true
 show_treeview=true
 
