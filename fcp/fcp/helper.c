@@ -284,23 +284,21 @@ int parse_tcp_ports (char *c, unsigned int *lowerport,
 void ip2str (unsigned int address, char **rr)
 {
   int i;
-  char *hlp, *hlp2;
+  char *hlp, *hlp2[18];
   unsigned char *addrp = (unsigned char *) &address;
   hlp = malloc (18);
   hlp[0] = '\0';
-  hlp2 = malloc (18);
   for (i = 0; i < 3; i++)
 	{
-	  sprintf (hlp2, "%i.", addrp[i]);
-	  hlp = strcat (hlp, hlp2);
+	  sprintf (hlp2[0], "%i.", addrp[i]);
+	  hlp = strcat (hlp, hlp2[0]);
 	}
-  sprintf (hlp2, "%i", addrp[3]);
-  hlp = strcat (hlp, hlp2);
+  sprintf (hlp2[0], "%i", addrp[3]);
+  hlp = strcat (hlp, hlp2[0]);
   sprintf (debug_msg_helper, "HELPER: ip2str(%i) returns: \"%s\"", address,
 		   hlp);
   fcp_log (LOG_DEBUG, debug_msg_helper);
   *rr = hlp;
-  free (hlp2);
 }
 
 /* this function returns true (1) if the given ip is part of the network
