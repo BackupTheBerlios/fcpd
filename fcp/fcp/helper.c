@@ -290,11 +290,11 @@ void ip2str (unsigned int address, char **rr)
   hlp[0] = '\0';
   for (i = 0; i < 3; i++)
 	{
-	  sprintf (hlp2[0], "%i.", addrp[i]);
-	  hlp = strcat (hlp, hlp2[0]);
+	  sprintf (hlp2, "%i.", addrp[i]);
+	  hlp = strcat (hlp, hlp2);
 	}
-  sprintf (hlp2[0], "%i", addrp[3]);
-  hlp = strcat (hlp, hlp2[0]);
+  sprintf (hlp2, "%i", addrp[3]);
+  hlp = strcat (hlp, hlp2);
   sprintf (debug_msg_helper, "HELPER: ip2str(%i) returns: \"%s\"", address,
 		   hlp);
   fcp_log (LOG_DEBUG, debug_msg_helper);
