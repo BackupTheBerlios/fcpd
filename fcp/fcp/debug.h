@@ -27,6 +27,9 @@
    code */
 /* #define FCP_NO_DEBUG */
 
+/* The facility for syslog */
+#define FCP_SYSLOG_FACILITY LOG_LOCAL0
+
 /* buffer to store debug messages */
 char debug_msg_helper[256];
 

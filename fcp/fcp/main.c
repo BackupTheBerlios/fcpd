@@ -559,7 +559,7 @@ int main (int argc, char *argv[])
 
 
   /* open syslogger */
-  fcp_openlog ("fcpd", LOG_PID, LOG_DAEMON);
+  fcp_openlog ("fcpd", LOG_PID, FCP_SYSLOG_FACILITY);
 
   /* initialize the signal handler */
   if (signal (SIGTERM, sig_term) == SIG_ERR)

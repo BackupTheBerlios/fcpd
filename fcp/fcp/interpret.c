@@ -1991,20 +1991,21 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 
 			  doublestar = malloc (sizeof (char *));
 
-			  ip2str (reserved->masq_ip, doublestar);
+			  ip2str (reservations->res->masq_ip, doublestar);
 
-				if (reserved->origin_uppt == reserved->origin_port)
+			  if (reservations->res->origin_uppt == reservations->res->origin_port)
 				{
 				  sprintf (rep, "FCP=%s SEQ=%i 200 OK\nIP=%s PORT=%i",
 						   FCP_VERSION, seq, *doublestar,
-						   reserved->masq_port);
+						   reservations->res->masq_port);
 				}
 			  else
 				{
 				  sprintf (rep,
 						   "FCP=%s SEQ=%i 200 OK\nIP=%s PORT=%i-%i",
-						   FCP_VERSION, seq, *doublestar, reserved->masq_port,
-						   reserved->masq_uppt);
+						   FCP_VERSION, seq, *doublestar,
+						   reservations->res->masq_port,
+						   reservations->res->masq_uppt);
 				}
 			  free (*doublestar);
 			  free (doublestar);
