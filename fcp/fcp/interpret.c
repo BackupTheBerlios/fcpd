@@ -2146,8 +2146,8 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 		  else
 			{
 			  sprintf (debug_msg_helper,
-					   "INTERPRET: succesfully reserved IP=%i Port=%i Uppt:%i "
-                       "for origin IP=%i Port=%i Uppt:%i",
+					   "INTERPRET: succesfully reserved IP=%i Port=%i-%i "
+                       "for origin IP=%i Port=%i-%i",
 					   reserved->masq_ip, reserved->masq_port,
 					   reserved->masq_uppt, reserved->origin_ip,
 					   reserved->origin_port, reserved->origin_uppt);
@@ -2166,7 +2166,7 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 			  else
 				{
 				  sprintf (rep,
-						   "FCP=%s SEQ=%i 200 OK\nIP=%s PORT=%i UPPERPORT=%i",
+						   "FCP=%s SEQ=%i 200 OK\nIP=%s PORT=%i-%i",
 						   FCP_VERSION, seq, *doublestar, reserved->masq_port,
 						   reserved->masq_uppt);
 				}
@@ -2245,7 +2245,7 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 			sprintf (rep, "FCP=%s SEQ=%i 200 OK\nIP=%s PORT=%i", FCP_VERSION,
 					 seq, *doublestar, reserved->origin_port);
 		  else
-			sprintf (rep, "FCP=%s SEQ=%i 200 OK\nIP=%s PORT=%i UPPERPORT=%i",
+			sprintf (rep, "FCP=%s SEQ=%i 200 OK\nIP=%s PORT=%i-%i",
 					 FCP_VERSION, seq, *doublestar, reserved->origin_port,
 					 reserved->origin_uppt);
 		  free (*doublestar);
@@ -2344,8 +2344,8 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 			  else
 				{
 				  sprintf (debug_msg_helper,
-						   "INTERPRET: succesfully released IP=%i Port=%i "
-                           "Uppt:%i for origin IP=%i Port=%i Uppt:%i",
+						   "INTERPRET: succesfully released IP=%i Port=%i-"
+                           "%i for origin IP=%i Port=%i-%i",
 						   reservations->res->masq_ip,
 						   reservations->res->masq_port,
 						   reservations->res->masq_uppt, reserved->origin_ip,
