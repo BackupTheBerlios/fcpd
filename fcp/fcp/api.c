@@ -1753,13 +1753,16 @@ int fcp_port_request (struct fcp_reserved *res, char *errstr)
 	     requested protocol. */
 	  api_s = malloc (sizeof (struct api_socket));
 	  memset (api_s, 0, sizeof (struct api_socket));
-	  api_s->socket = socket (AF_INET, SOCK_STREAM, res->proto);
+	  if (res->proto == 17)
+		api_s->socket = socket (AF_INET, SOCK_DGRAM, res->proto);
+	  else
+		api_s->socket = socket (AF_INET, SOCK_STREAM, res->proto);
 	  if (api_s->socket == -1)
 		{
 		  fcp_log (LOG_ERR,
 				   "API: fcp_port_request: error while trying to get a socket");
 		  sprintf (debug_msg_helper,
-				   "API: fcp_port_request: socket() call returned %i", errno);
+				   "API: fcp_port_request: socket() call returned %i: %s", errno, strerror(errno));
 		  fcp_log (LOG_ERR, debug_msg_helper);
 		  sprintf (errstr,
 				   "500 Server Internal Error: error while trying to allocate"
