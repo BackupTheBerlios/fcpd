@@ -494,8 +494,21 @@ int set_action (struct fcp_state *st, char *reply)
 		  state_l->next->res = NULL;
 		  if (!ret)
 			{
-			  state_l->next->my_reserved = reservs;
-			  reservs->my_state = state_l->next;
+			  /* to prevent double freeing of the reservation for reflexive 
+			     ruleswe only link the reservation for one of them */
+			  if (st->sop && st->sop->reflexive) {
+		        if (reservs->res->origin_ip == state_l->next->pme->src_ip) {
+			      state_l->next->my_reserved = reservs;
+			      reservs->my_state = state_l->next;
+			    }
+			    else {
+			      state_l->next->my_reserved = NULL;
+			    }
+			  }
+			  else {
+			    state_l->next->my_reserved = reservs;
+			    reservs->my_state = state_l->next;
+			  }
 			}
 		  else
 			state_l->next->my_reserved = NULL;
