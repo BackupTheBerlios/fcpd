@@ -254,7 +254,13 @@ int parse (char *in_buf, int len, struct name_value *ret, char *err)
 					   context);
 			  fcp_log (LOG_DEBUG, debug_msg_helper);
 			  /* every context ends at newline, sorry 'bout that */
-			  context = 0;
+			  /* very dirty hack to prevent a PME token in the
+			     second line of QUERYNAT and RELEASENAT */
+			  if (context == FCP_PARSER_CONTEXT_QUERYNAT ||
+			      context == FCP_PARSER_CONTEXT_RELEASENAT)
+			  	context = FCP_PARSER_CONTEXT_PME;
+			  else
+			        context = 0;
 			  /* reset eol_found flag, that we can reuse it */
 			  eol_found = 0;
 			}
@@ -273,6 +279,8 @@ int parse (char *in_buf, int len, struct name_value *ret, char *err)
   /* interpreter preserver patch ON: */
 
 
+  if (!errvalue) /* to prevent error message overwriting */
+    {
   /* first run, put tokens seperated by "-" and ":" together (portrange,
      icmp) */
   tclwrtcp = tclb;
@@ -367,7 +375,7 @@ int parse (char *in_buf, int len, struct name_value *ret, char *err)
 
   /* interpreter preserver patch OFF */
   /* ******************************* */
-
+    }
 
   /* echoing and freeing the list */
   tclwrtcp = tclb;
