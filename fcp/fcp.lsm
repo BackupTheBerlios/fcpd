@@ -1,14 +1,17 @@
 Begin3
-Title:          FCP 
+Title:          fcpd
 Version:        0.1
 Entered-date:   
-Description:    
-Keywords:        
-Author:         Ulrich Abend, Nils Ohlmeier <ullstar@ullstar.de, develop@ohlmeier.org>
-Maintained-by:  Ulrich Abend, Nils Ohlmeier <ullstar@ullstar.de, develop@ohlmeier.org>
+Description:    A deamon which interprets it's own protocol to insert and 
+                remove rules into/from a firewall by time or command.
+Keywords:       security, firewall, netfilter, deamon, proxy
+Author:         Ulrich Abend <ullstar@ullstar.de>,
+                Nils Ohlmeier <develop@ohlmeier.org>
+Maintained-by:  Ulrich Abend, <ullstar@ullstar.de>
+                Nils Ohlmeier <develop@ohlmeier.org>
 Primary-site:   	        
-Home-page:      http:// 
+Home-page:      http://developers.berlios.de/projects/fcpd/
 Original-site:  
-Platforms:       Linux and other Unices
+Platforms:       Linux
 Copying-policy: GNU Public License
 End

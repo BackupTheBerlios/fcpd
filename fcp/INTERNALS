@@ -14,19 +14,19 @@ The reading and evaluating of the config file is handled complet in configure.
 It reads every line into a name_value struct and this pointered list of
 name_value structs is evaluated afterwards by change_config.
 
-### connection.c ###
-Next the srv_listen function will be called to make the network connections. It
-uses many functions from connection.c which are all derived from the EasyTCPIP
-Lib 0.4.
+### network.c ###
+Next the srv_listen function will be called to make the network connections.
+Which uses functions from network.c to accept connections from the network, 
+determine if one full request arrived on one of the connections.
 
 ### parse.c ###
-For every connection the parse function will be called. This put the function
+For every full request the parse function will be called. This function
 puts the elements of the request into a name_value list or return an error if
 it's fail.
 
 ### interpret.c ###
 Next the name_value list will be given to the interpret function which
-interprets tha name value pairs and also make the changes to the firewall or the
+interprets the name value pairs and also make the changes to the firewall or the
 structs. Finaly it builds a reply to request.
 
 ### debug.c ###
@@ -57,16 +57,40 @@ A two times double linked list of all states/rules which are handled by the
 fcpd. The pointers next and prev making a simple double linked list of all
 states of the fcpd, so that it's easy to walk through all states. Time_next and
 time_prev are making a second double linked list of the states which should be
-deleted automaticly after some by the fcpd, and which is ordered by the
+deleted automaticly after some time by the fcpd, and which is ordered by the
 remaining time. If a state should not be deleted time_next and time_prev are
 pointing to NULL and the distance_ttl is zero. Distance_ttl are the more seconds
 the state remain in the fcpd and the firewall than the state of time_prev. State
 finaly points to the according state.
+Resevervation made by a QUERYNAT are also handle as a state to enable the 
+removing of such reservations by time. If the state is only a dummy for such a
+reservation then the pointer res points to an element in the list of 
+reservations. On a normal state res points to NULL.
+If the pointer my_reserved isn't NULL a reservation to this normal state 
+exists. With this pointer we can remove the reservation from the list of 
+reservations without searching through the hole list if the the state is 
+removed.
 
 ### state_list_base ###
 This is the first element of the normal and the time ordered linked list. It
 will never be removed and have no according state. With this element you have
 always access to the begining of the linked lists.
+
+### reserved_list ###
+These are the elements of the simple double linked list of the port 
+reservations made by the QUERYNAT requests. So next and prev pointing to the
+next and previous elements in the list of reservations. The pointer res points
+to the structure which is holding the information of the reservation. res_state
+points to the dummy in the list of states which enables removing of 
+reservations by time.
+If my_state is NULL no rule respectively state for this reservation exists. 
+Otherwise it points to the belonging state of the rule (it prevents searching 
+through the state list).
+
+### reserved_list_base ###
+This is the first element of the duoble linked list of reservations. It
+will never be removed and have no according state. With this element you have
+always access to the begining of the double linked lists.
 
 ### fcp_pme ###
 This struct have for every element of a packet matching expression a variable
@@ -76,28 +100,48 @@ _def variables will be set to one if this parameter was set in the request. Zero
 means this parameter was not requested and we have to use the default value.
 
 ### fcp_sop ###
-This struct representes the parameters of the set options like in the fcp_pme.
-It also contains a pointer to a fcp_pme struct which contains the packet
-modifiers if they where requested.
+This struct represents the parameters of the set options like in the fcp_pme.
 
 ### fcp_state ###
 This struct contains pointers to a packet matching expression and the set
 options of one state. It also contains the IP and the port with will be used at
-network adress translation (NAT) for this state if its required. Finaly their is
+network adress translation (NAT) for this state if its required. Their is also
 a pointer to the IP of the owner of this state for a simple access restriction.
+Finaly their is an enumeration for the direction of the rule. A simple function
+in the interpreter tryes to determine in which direction the packet flow of 
+this rule is going and sets this enumeration accordinly.
 
 ### fcp_reserved ###
-This struct will be filled with IP and port of the source and the returned IP
-and port of the firewall on a NAT Request.
+This struct will be filled with IP and ports of the source, the returned IP
+and ports of the firewall and the protocol on a NAT Request.
 
-### fcp_query_answer ###
-This struct will be returned from the fcp_query api call. It contains pointers
-to a packet matching expression and a set option struct. The next pointers
-points on the next struct so the api call will return a pointered list of this
-struct.
+### access_methods ###
+This enumeration contains all known methods to determine if the client is 
+allowed to make requests on this server. At the moment their is only one method 
+which ckecks the IP of the client against a lists of allowed IPs.
 
-### connection ###
-### hostinfo ###
-### master_host_list ###
-These structs are derived from the EasyTCPIP Lib 0.4, so we are not able to
-describe them here. This code will hopefully be rewritten soon.
+### priority_class_action ###
+This is an array which holds the actions of the priority classes. With this we
+can determine if a new rule in a priority class have a different action then 
+the existing rules in this priority class (which we reject then).
+
+### rules_per_priority_class ###
+This is an array which holds the number of rules in the priority class. 
+Priority class zero contains all rules which don't have specified priority 
+class. If we sum all values from zero to the requested priority class we can
+determine where we have to insert a rule with a priority class request.
+
+### directions ###
+This is only an enumeration which contains all twelve possible directions of 
+packet flows and one for the case where we can't determine the direction 
+(NOT_SET).
+
+### fcp_address_list ###
+This struct contains an IP and it belonging netmask. If it's the IP of an 
+single host the netmask should be 0xFFFFFFFF. The pointer next points to the 
+next element so we get a list of IPs and networks.
+
+### fcp_interface_list ###
+This struct holds the name of one interface and a pointer (next) to the next 
+element of the list. This struct will presumable be removed because it's only 
+use for the obsoletely interface command.

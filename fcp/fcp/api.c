@@ -2419,13 +2419,6 @@ int fcp_port_release (struct fcp_reserved *res, char *errstr)
   return 0;
 };
 
-int fcp_query (struct fcp_query_answer *rules, unsigned int *rule_numbers,
-			   char *errstr)
-{
-  sprintf (errstr, "501 Not Implemted: query not implemented (dummy API)");
-  return 0;
-};
-
 /* This function is called from main at startup of the server. So here can
    all nessecary things be initalised or checked. */
 void fcp_api_init ()

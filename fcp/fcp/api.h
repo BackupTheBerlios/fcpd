@@ -114,14 +114,6 @@ struct fcp_reserved
   int proto;
 };
 
-/* This structure will be returned/filled by fcp_query API call */
-struct fcp_query_answer
-{
-  struct fcp_pme *pme;
-  struct fcp_sop *sop;
-  struct fcp_query_answer *next;
-};
-
 /* This struct contains one IP, the belonging netmask and a pointer to next
    element of the list. If it's a single IP the netmask should be set to
    0xFFFFFFFF. */
