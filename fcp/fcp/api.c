@@ -1973,17 +1973,6 @@ int fcp_port_release (struct fcp_reserved *res, char *errstr)
 	}
 };
 
-/* Returns the complete state of rule number rule_number. returns: 1: ok ; 0:
-   query failed; -1...: reserved for later use If a rule have an action other
-   than one of the in the FCP protocol specified action_def will be set and
-   action will be zero. */
-int fcp_query (struct fcp_query_answer *rules, unsigned int *rule_numbers,
-			   char *errstr)
-{
-  fcp_log (LOG_DEBUG, "call to dummy func fcp_query");
-  sprintf (errstr, "501 Not Implemented: fcp_query is not implemented yet");
-  return 0;
-};
 
 /* This function is called from main at startup of the server. So here can
    all nessecary things be initalised or checked. */
@@ -2386,98 +2375,6 @@ int fcp_port_release (struct fcp_reserved *res, char *errstr)
   fcp_log (LOG_INFO, "501 Not Implemented: NAT not supported by ipchains");
   sprintf (errstr, "501 Not Implemented: NAT not supported by ipchains");
   return 0;
-};
-
-/* Returns the complete state of rule number rule_number. returns: 1: ok ; 0:
-   query failed; -1...: reserved for later use If a rule have an action other
-   than one of the in the FCP protocol specified action_def will be set and
-   action will be zero. */
-int fcp_query (struct fcp_query_answer *rules, unsigned int *rule_numbers,
-			   char *errstr)
-{
-  unsigned int num_rules, num_chains, rulenum;
-  struct ipfwc_fwchain *chains = ipfwc_get_chainnames (&num_chains);
-  struct ipfwc_fwrule *rule;
-
-  if (chains != NULL)
-	{
-	  chains =
-		memcpy ((struct ipfwc_fwchain *)
-				malloc (num_chains * sizeof (struct ipfwc_fwchain)), chains,
-				num_chains * sizeof (struct ipfwc_fwchain));
-	  rule = ipfwc_get_rules (&num_rules, 0);
-
-	  if (rule != NULL)
-		{
-		  if (num_rules == 0)
-			{
-			  (*rules).pme = NULL;
-			  (*rules).sop = NULL;
-			  (*rules).next = NULL;
-			  rule_numbers = 0;
-			}
-		  else
-			{
-			  for (rulenum = 0; rulenum < num_rules; rulenum++)
-				{
-				  /* ################################ At this time the only
-				     thing of interest is the action, so we check it here. In
-				     real we should convert/fill up the fcp_sop complet.
-				     ################################ */
-				  if (strcmp (rule[rulenum].ipfw.label, '\0') == 0)
-					(*rules).sop = NULL;
-				  else
-					{
-					  (*rules).sop =
-						(struct fcp_sop *) malloc (sizeof (struct fcp_sop));
-					  (*rules).sop->action = '\0';
-					  (*rules).sop->action_def = 1;
-					  (*rules).sop->packet_modf = NULL;
-					  (*rules).sop->icmp_msg = 0;
-					  (*rules).sop->icmp_msg_def = 0;
-					  (*rules).sop->timer = 0;
-					  (*rules).sop->timer_def = 0;
-					  (*rules).sop->reflexive = 0;
-					  (*rules).sop->reflexive_def = 0;
-					  (*rules).sop->pri_class = 0;
-					  (*rules).sop->pri_class_def = 0;
-					  (*rules).sop->log = 0;
-					  (*rules).sop->log_def = 0;
-					  if (!strcmp (rule[rulenum].ipfw.label, "ACCEPT"))
-						(*rules).sop->action = fcp_action_pass;
-					  else if (!strcmp (rule[rulenum].ipfw.label, "DENY"))
-						(*rules).sop->action = fcp_action_drop;
-					  else if (!strcmp (rule[rulenum].ipfw.label, "REDIRECT"))
-						(*rules).sop->action = fcp_action_reject;
-					  else
-						(*rules).sop->action = 0;
-					}
-				  /* Now convert everthing of the pme */
-				  (*rules).pme =
-					(struct fcp_pme *) malloc (sizeof (struct fcp_pme));
-				  ipfw_to_pme (&rule[rulenum].ipfw.ipfw, (*rules).pme,
-							   errstr);
-
-				  if (rulenum + 1 < num_rules)
-					{
-
-					  (*rules).next =
-						(struct fcp_query_answer *)
-						malloc (sizeof (struct fcp_query_answer));
-					  (*rules).next->pme = NULL;
-					  (*rules).next->sop = NULL;
-					  (*rules).next->next = NULL;
-					  rules = (*rules).next;
-					}
-				}
-			}
-		  return 1;
-		}
-	  else
-		return 0;
-	}
-  else
-	return 0;
 };
 
 /* This function is called from main at startup of the server. So here can

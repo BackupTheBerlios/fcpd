@@ -31,15 +31,15 @@ You may specify config-file, debuglevel, and daemon mode on command line:
 
 3. What platforms are supported?
 
-This initial version of fcpd is based on linux-2.2 kernel. It uses ipchains
-like calls to edit the firewall rules. It will also run on linux-2.4, using
-ipchains compatibility mode (modprobe ipchains - need to compile ip-tables
-and ipchains as modules).
+The initial version of fcpd is based on linux-2.2 kernel for i386. The actual
+version supports linux-2.4 kernel for i386. At compile time it will try to
+determine which version of linux is running, and compile it with support for
+ipchains (2.2) or netfilter (2.4).
 The server was designed to be easily ported to other platforms by seperating
 backend from other code. Ideally it should be enough to rewrite api.c and
 recompile on any unix platform, but we didn't test that yet...
 
-4. How do I build fcpd?
+4. How do I build, install und run fcpd?
 
 Get the tgz package, which has a name like fcp-0.x.tar.gz
 
@@ -52,12 +52,15 @@ then you will find the executable of fcpd in the fcp subdirectory - simply
 copy it wherever you want (e.g. /sbin/). fcpd must be run with root
 permissions because the netfilter rules need to be changed. It's not
 recommended to make fcpd set-uid.
+
+$ make install
+Will install the fcpd binary in /usr/local/sbin.
+
 You also have to copy the fcpd.conf.sample to /etc/fcpd.conf and modifiy 
 it to your wishes or start always with 'fcpd -f /what/ever/you/want/file'.
 Please see the fcpd.conf.sample for the required parameters and what they
 modify.
-The fcpd rereads the fcpd.conf if he got the HUP signal. But at this time not
-all parameters (e.g. Port) will actually change after rereading.
+The fcpd rereads the fcpd.conf if he got the HUP signal.
 
 5. I want to write a client app for fcp, what must I do?
 
@@ -77,9 +80,18 @@ Real security mechanisms will be added in future releases.
 
 7. Is it all about opening pinholes?
 
-Yes. At least at the time. The protocol allows complete remote administration
-of filtering rules and NAT settings, but the server doesn't yet. The protocol
-specification within this package shows what features are supported.
+Yes. As you can see in the protocol spec within the distribution the protocol
+allows to manage normal and nat rules. 
+
+But at this time the fcpd doesn't read the rules from the firewall at startup 
+so you can't manage rules which are in the firewall at startup. This is caused
+by the flexibleness of netfilter. A netfilter rule may contain dynamicly loaded
+matches which the fcpd have to interpret if it reads rules from the firewall.
+
+We tryed to specify the protocol much more wide and flexible, so that you are
+able to manage all rules in your firewall. But this would leed to many problems
+in the implementation so we dropped this target and focused only on simple 
+rules pinholes with nat support.
 
 8. Debugging
 
@@ -90,23 +102,7 @@ messages by specifiing a line in /etc/syslog.conf similar to:
 
 daemon.*                        /var/log/daemon
 
-9. Testing
-
-For testing purposes a small skript can do good work (uses netcat, which is
-sometimes called nc):
-
-#!/bin/bash
-cat testseq | netcat localhost 12345
-
-you can now edit testseq and fill it with a procol command. Watch syslog
-and/or ipchains -L for the results of your command sequence.
-To evaluate the timeout feature of fcpd, a console running the command
-
-$ watch ipchains -nL
-
-might do good work.
-
-10. Performance Issues
+9. Performance Issues
 
 A first test has given the following results:
 if logging is reduced to minimum (level 5) 60-80 processed request on an 
@@ -126,9 +122,11 @@ and deleting every time the same rule, so the fcpd haven't to handle much
 rules, and caching effects of the os can't be excluded.)
 
 As you can see opening and closeing of TCP connections limiting the server more
-than the amount of the requests.
+than the amount of the requests. This also leeds to the suggestion for clients
+not to open and close a connection for every request. Instead make on 
+connection and only close it when you die... ;-)
 
-11. Authors
+10. Authors
 
 Nils Ohlmeier, lando@cs.tu-berlin.de
 Ulrich Abend, ullstar@cs.tu-berlin.de
@@ -137,11 +135,12 @@ Please contact the authors for any useful purpose.
 
 12. Credits
 
-The package makes use of excerpts from Easytcpiplib-0.4 from Marcelo Gornstein.
-Homepage: members.xoom.com/mgornstein - thanks.
-The ipchains headers are used from the ipchains-package - thanks.
+The program uses the libipfwc for ipchains support and the libiptc for iptables
+or better for the netfilter support. 
+Thanks to Paul ``Rusty'' Russell for this two librarys.
 
 13. License
 
 This package is distributed under the GPL.
+
 We hope it'll be useful.

@@ -183,9 +183,4 @@ int fcp_port_request (struct fcp_reserved *res, char *errstr);
    -1: port not reserved; -2...: reserved for *future* use */
 int fcp_port_release (struct fcp_reserved *res, char *errstr);
 
-/* returns the complete state of rule number rule_number. returns: 1: ok ; 0: 
-   query failed; -1...: reserved for later use */
-int fcp_query (struct fcp_query_answer *rules, unsigned int *rule_numbers,
-			   char *errstr);
-
 #endif
