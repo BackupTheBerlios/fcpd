@@ -101,7 +101,7 @@ void log_ipt_entry (struct ipt_entry *e)
 		   e->target_offset, e->next_offset);
   fcp_log (LOG_DEBUG, debug_msg_helper);
   sprintf (debug_msg_helper, "comefrom: %u pcnt: %u bcnt: %u", e->comefrom,
-		   e->counters.pcnt, e->counters.bcnt);
+		   (unsigned int)e->counters.pcnt, (unsigned int)e->counters.bcnt);
   fcp_log (LOG_DEBUG, debug_msg_helper);
   sprintf (debug_msg_helper, "elems: %u", e->elems[0]);
   fcp_log (LOG_DEBUG, debug_msg_helper);
@@ -1757,7 +1757,7 @@ int fcp_port_request (struct fcp_reserved *res, char *errstr)
 	req_range = 0;
   api_range = -1;
 
-  while (req_range != api_range && okay)
+  while ((req_range != api_range) && okay)
 	{
 	  /* Allocate memory for our structure and try to get a socket for the
 	     requested protocol. */
@@ -1844,7 +1844,7 @@ int fcp_port_request (struct fcp_reserved *res, char *errstr)
 			}
 		  else
 			api_s->port = ntohs (sock.sin_port);
-		  if (tmp_s)
+		  if (tmp_s != NULL)
 			tmp_s->next = api_s;
 		  tmp_s = api_s;
 		  api_range++;

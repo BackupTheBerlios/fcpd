@@ -303,7 +303,7 @@ int get_full_request (int *filedesc, char *result, char *ip)
 				  // handle new connections
 				  addrlen = sizeof (remotetcpaddr);
 				  if ((newfd =
-					   accept (tcplistener, &remotetcpaddr, &addrlen)) == -1)
+					   accept (tcplistener, (void *)&remotetcpaddr, &addrlen)) == -1)
 					{
 					  fcp_log (LOG_CRIT,
 							   "NETWORK: get_full_request: getting new tcp "

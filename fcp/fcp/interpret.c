@@ -553,6 +553,7 @@ int set_action (struct fcp_state *st, char *reply)
 		  return 0;
 		}
 	}							/* normal insert */
+	return 1;
 }								/* set_action */
 
 /* This function takes a state with the action RELEASE and removes it from
@@ -774,6 +775,8 @@ struct fcp_state *create_reflex (struct fcp_state *st)
 	case LOOP_DMZ:
 	  reflex_state->direction = DMZ_LOOP;
 	  break;
+	default:
+		break;
 	}
 
   /* what is destination becomes source */
@@ -1184,38 +1187,79 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 			  break;
 
 			case fcp_token_SRCIP:
-			  if (in_where == fcp_in_REQH)
-				{
-				  in_where = fcp_in_PME;
-				}
-			  if (in_where == fcp_in_PME)
-				{
-				  ret = parse_ip_netmask (pairs->value, &(pme->src_netmask));
-				  if (ret == 1)
+			  if (req_type == fcp_req_type_QUERYNAT)
+			  {
+				  if ((in_where == fcp_in_NATADDS) ||
+					  ((in_where == fcp_in_REQH) &&
+					   ((req_type == fcp_req_type_QUERYNAT) ||
+						(req_type == fcp_req_type_RELEASENAT))))
 					{
-					  pme->src_netmask_def = 1;
+					  in_where = fcp_in_NATADDS;
+					  // pme->src_ip_def = 1;
+					  if (!parse_ip_address
+						  (pairs->value, &(reserved->origin_ip)))
+						{
+						  sprintf (rep,
+								   "FCP=%s SEQ=%i 400 Bad Request: %s must be of "
+	                               "type ip-adress",
+								   FCP_VERSION, seq, token_names[res]);
+						  *rep_input = rep;
+						  FCP_FREE_MEM return 1;
+						}
+					  if (parse_ip_netmask (pairs->value, &(pme->src_netmask)))
+						{
+						  sprintf (rep,
+								   "FCP=%s SEQ=%i 400 Bad Request: %s must be of "
+	                               "type ip-adress",
+								   FCP_VERSION, seq, token_names[res]);
+						  *rep_input = rep;
+						  FCP_FREE_MEM return 1;
+						}
 					}
-				  if (ret == -1)
+				  else
 					{
 					  sprintf (rep,
-							   "FCP=%s SEQ=%i 400 Bad Request: %s must be of "
-                               "type ip-adress[/netmask]",
+							   "FCP=%s SEQ=%i 400 Bad Request: %s must only be "
+	                           "specified in QUERYNAT or RELEASENAT statement",
 							   FCP_VERSION, seq, token_names[res]);
 					  *rep_input = rep;
 					  FCP_FREE_MEM return 1;
 					}
-				  pme->src_ip_def = 1;
-				  if (parse_ip_address (pairs->value, &(pme->src_ip)) == 0)
+			  }
+			  else
+			  {
+				  if (in_where == fcp_in_REQH)
 					{
-					  sprintf (rep,
-							   "FCP=%s SEQ=%i 400 Bad Request: %s must be of "
-                               "type ip-adress[/netmask]",
-							   FCP_VERSION, seq, token_names[res]);
-					  *rep_input = rep;
-					  FCP_FREE_MEM return 1;
+					  in_where = fcp_in_PME;
 					}
-				}
-			  /* Packet modifier support for SCRIP commented out !!! else if
+				  if (in_where == fcp_in_PME)
+					{
+					  ret = parse_ip_netmask (pairs->value, &(pme->src_netmask));
+					  if (ret == 1)
+						{
+						  pme->src_netmask_def = 1;
+						}
+					  if (ret == -1)
+						{
+						  sprintf (rep,
+								   "FCP=%s SEQ=%i 400 Bad Request: %s must be of "
+	                               "type ip-adress[/netmask]",
+								   FCP_VERSION, seq, token_names[res]);
+						  *rep_input = rep;
+						  FCP_FREE_MEM return 1;
+						}
+					  pme->src_ip_def = 1;
+					  if (parse_ip_address (pairs->value, &(pme->src_ip)) == 0)
+						{
+						  sprintf (rep,
+								   "FCP=%s SEQ=%i 400 Bad Request: %s must be of "
+	                               "type ip-adress[/netmask]",
+								   FCP_VERSION, seq, token_names[res]);
+						  *rep_input = rep;
+						  FCP_FREE_MEM return 1;
+						}
+					}
+				  /* Packet modifier support for SCRIP commented out !!! else if
 			     ((in_where == fcp_in_PCKMODF) || ((in_where ==
 			     fcp_in_SETOPTS) && (fcp_packetmodifier_allowed))) { in_where
 			     = fcp_in_PCKMODF; fcp_packetmodifier_allowed = 0;
@@ -1232,17 +1276,17 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 			     (rep, "FCP=%s SEQ=%i 400 -yy- Bad Request: %s is not a valid
 			     ip-adress", FCP_VERSION, seq, token_names[res]); *rep_input
 			     = rep; fcp_free_mem return 1; } } */
-			  else
-				{
-				  sprintf (rep,
-						   "FCP=%s SEQ=%i 400 Bad Request: %s must be "
-                           "specified in PME",
-						   FCP_VERSION, seq, token_names[res]);
-				  *rep_input = rep;
-				  FCP_FREE_MEM return 1;
-				}
+				  else
+					{
+					  sprintf (rep,
+							   "FCP=%s SEQ=%i 400 Bad Request: %s must be "
+	                           "specified in PME",
+							   FCP_VERSION, seq, token_names[res]);
+					  *rep_input = rep;
+					  FCP_FREE_MEM return 1;
+					}
+			  }
 			  break;
-
 
 			case fcp_token_DSTIP:
 			  if (in_where == fcp_in_REQH)
@@ -1302,30 +1346,73 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 			  break;
 
 			case fcp_token_SRCPORT:
-			  if (in_where == fcp_in_REQH)
+				if (req_type == fcp_req_type_QUERYNAT)
 				{
-				  in_where = fcp_in_PME;
+					if (in_where == fcp_in_NATADDS)
+					{
+						if (!parse_tcp_ports
+							(pairs->value, &(reserved->origin_port),
+								&(reserved->origin_uppt)))
+						{
+							sprintf (rep,
+									"FCP=%s SEQ=%i 400 Bad Request: %s is invalid",
+									FCP_VERSION, seq, token_names[res]);
+							*rep_input = rep;
+							FCP_FREE_MEM
+							return 1;
+						}
+					}
+					else
+					{
+						if ((req_type != fcp_req_type_QUERYNAT) &&
+							(req_type != fcp_req_type_RELEASENAT))
+						{
+							sprintf (rep,
+										"FCP=%s SEQ=%i 400 Bad Request: %s must only be"
+										" specified in QUERYNAT or RELEASENAT statement",
+										FCP_VERSION, seq, token_names[res]);
+							*rep_input = rep;
+							FCP_FREE_MEM
+							return 1;
+						}
+						else
+						{
+							sprintf (rep,
+									"FCP=%s SEQ=%i 400 Bad Request: %s must follow IP",
+									FCP_VERSION, seq, token_names[res]);
+							*rep_input = rep;
+							FCP_FREE_MEM
+							return 1;
+						}
+					}
 				}
-			  if (in_where == fcp_in_PME)
+				else
 				{
-				  pme->src_pt_def = 1;
-				  if (!parse_tcp_ports
-					  (pairs->value, &(pme->src_pt), &(pme->src_uppt)))
+					if (in_where == fcp_in_REQH)
 					{
-					  sprintf (rep,
-							   "FCP=%s SEQ=%i 400 Bad Request: %s must be of "
-                               "type <port> | <port-range>",
-							   FCP_VERSION, seq, token_names[res]);
-					  *rep_input = rep;
-					  FCP_FREE_MEM return 1;
+						in_where = fcp_in_PME;
 					}
-				  else
+					if (in_where == fcp_in_PME)
 					{
-					  if (pme->src_pt != pme->src_uppt)
-						pme->src_uppt_def = 1;
+						pme->src_pt_def = 1;
+						if (!parse_tcp_ports
+							(pairs->value, &(pme->src_pt), &(pme->src_uppt)))
+						{
+							sprintf (rep,
+									"FCP=%s SEQ=%i 400 Bad Request: %s must be of "
+									"type <port> | <port-range>",
+									FCP_VERSION, seq, token_names[res]);
+							*rep_input = rep;
+							FCP_FREE_MEM
+							return 1;
+						}
+						else
+						{
+							if (pme->src_pt != pme->src_uppt)
+								pme->src_uppt_def = 1;
+						}
 					}
-				}
-			  /* Packet modifier support for SRCPORT commented out !!! else
+				  /* Packet modifier support for SRCPORT commented out !!! else
 			     if ((in_where == fcp_in_PCKMODF) || ((in_where ==
 			     fcp_in_SETOPTS) && (fcp_packetmodifier_allowed))) { in_where
 			     = fcp_in_PCKMODF; fcp_packetmodifier_allowed = 0;
@@ -1335,16 +1422,17 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 			     SEQ=%i 400 Bad Request: %s must be of type <port> |
 			     <port-range>", FCP_VERSION, seq, token_names[res]);
 			     *rep_input = rep; fcp_free_mem return 1; } } */
-			  else
-				{
-				  sprintf (rep,
-						   "FCP=%s SEQ=%i 400 Bad Request: %s must be "
-                           "specified in PME",
-						   FCP_VERSION, seq, token_names[res]);
-				  *rep_input = rep;
-				  FCP_FREE_MEM return 1;
+					else
+					{
+						sprintf (rep,
+								"FCP=%s SEQ=%i 400 Bad Request: %s must be specified in PME",
+								FCP_VERSION, seq, token_names[res]);
+						*rep_input = rep;
+						FCP_FREE_MEM
+						return 1;
+					}
 				}
-			  break;
+				break;
 
 			case fcp_token_DSTPORT:
 			  if (in_where == fcp_in_REQH)
@@ -1674,7 +1762,7 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 			  break;
 
 			case fcp_token_IP:
-			  if ((in_where == fcp_in_NATADDS) ||
+/*			  if ((in_where == fcp_in_NATADDS) ||
 				  ((in_where == fcp_in_REQH) &&
 				   ((req_type == fcp_req_type_QUERYNAT) ||
 					(req_type == fcp_req_type_RELEASENAT))))
@@ -1709,11 +1797,17 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 						   FCP_VERSION, seq, token_names[res]);
 				  *rep_input = rep;
 				  FCP_FREE_MEM return 1;
-				}
+				} */
+			  sprintf (rep,
+					   "FCP=%s SEQ=%i 400 Bad Request: %s is obsolete use %s instead",
+					   FCP_VERSION, seq, token_names[res], token_names[11]);
+			  *rep_input = rep;
+			  FCP_FREE_MEM
+			  return 1;
 			  break;
 
 			case fcp_token_PORT:
-			  if (in_where == fcp_in_NATADDS)
+/*			  if (in_where == fcp_in_NATADDS)
 				{
 				  // pme->src_pt_def = 1
 				  if (!parse_tcp_ports
@@ -1748,9 +1842,14 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 					  *rep_input = rep;
 					  FCP_FREE_MEM return 1;
 					}
-
-				}
-			  break;
+				} */
+				sprintf (rep,
+								"FCP=%s SEQ=%i 400 Bad Request: %s is obsolete use %s instead",
+								FCP_VERSION, seq, token_names[res], token_names[13]);
+				*rep_input = rep;
+				FCP_FREE_MEM
+				return 1;
+				break;
 
 			case fcp_token_UPPERPORT:
 			  if (in_where == fcp_in_NATADDS)
@@ -2094,7 +2193,7 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 
 			  ip2str (reserved->masq_ip, doublestar);
 
-			  if (reserved->origin_uppt == 0)
+				if (reserved->origin_uppt == reserved->origin_port)
 				{
 				  sprintf (rep, "FCP=%s SEQ=%i 200 OK\nIP=%s PORT=%i",
 						   FCP_VERSION, seq, *doublestar,
@@ -2157,7 +2256,7 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 
 			  ip2str (reserved->masq_ip, doublestar);
 
-			  if (reserved->origin_uppt == 0)
+			  if (reserved->origin_uppt == reserved->origin_port)
 				{
 				  sprintf (rep, "FCP=%s SEQ=%i 200 OK\nIP=%s PORT=%i",
 						   FCP_VERSION, seq, *doublestar,

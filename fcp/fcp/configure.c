@@ -23,6 +23,7 @@
 #include "interpret.h"
 #include "configure.h"
 #include "helper.h"
+#include "network.h"
 
 #define fcp_token_unknown		0
 
@@ -94,7 +95,7 @@ void change_config (struct name_value *config_values)
 			{
 			case argument_PORT:
 			  conv = atol (config_list->value);
-			  if ((conv > 65535) || (conv < 0))
+			  if ((conv > 65535) || (conv < 1))
 				{
 				  sprintf (debug_msg_helper,
 						   "CONFIGURE: error port %i out of range", conv);
@@ -112,11 +113,12 @@ void change_config (struct name_value *config_values)
 				}
 			  if (conv != fcp_port)
 				{
-				  /* *FIXME* here we have to terminate all our existing
-				     connections, and try to listen to the new defined port. */
-				  fcp_log (LOG_DEBUG,
-						   "CONFIGURE: new port defined. here we SHOULD"
-                           " restart our network. NOT IMPLEMENTED");
+					/* the listening port have changed so we stop our network (all
+						 connections are getting lost) and restart it with the new port */
+					stop_network();
+					fcp_port = conv;
+					init_network();
+					fcp_log (LOG_DEBUG, "CONFIGURE: network restartet with new port");
 				}
 			  break;
 			case argument_DEBUGLEVEL:

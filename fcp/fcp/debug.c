@@ -67,7 +67,7 @@ void fcp_log_fcp_state (struct fcp_state *state)
 {
   struct fcp_state dbg = *state;
 
-  syslog (LOG_DEBUG, "DEBUG: masq_ip: %u masq_port: %u owner_ip: %u",
+  syslog (LOG_DEBUG, "DEBUG: masq_ip: %u masq_port: %u owner_ip: %s",
 		  dbg.masq_ip, dbg.masq_port, dbg.owner_ip);
   syslog (LOG_DEBUG, "DEBUG: proto: %i proto_def: %i", dbg.pme->proto,
 		  dbg.pme->proto_def);
@@ -107,7 +107,7 @@ void fcp_log_name_value (struct name_value *name)
 	{
 	  syslog (LOG_DEBUG, "DEBUG: name: %s value: %s", this->name,
 			  this->value);
-	  syslog (LOG_DEBUG, "DEBUG: next: %u", this->next);
+	  syslog (LOG_DEBUG, "DEBUG: next: %u", (unsigned int)this->next);
 	  this = this->next;
 	}
 }
