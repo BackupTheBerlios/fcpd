@@ -284,7 +284,7 @@ int parse_tcp_ports (char *c, unsigned int *lowerport,
 void ip2str (unsigned int address, char **rr)
 {
   int i;
-  char *hlp, *hlp2[18];
+  char *hlp, hlp2[18];
   unsigned char *addrp = (unsigned char *) &address;
   hlp = malloc (18);
   hlp[0] = '\0';
