@@ -27,16 +27,16 @@
 
 #define fcp_token_unknown		0
 
-#define argument_PORT					1
-#define argument_DEBUGLEVEL		2
+#define argument_PORT				1
+#define argument_DEBUGLEVEL			2
 #define argument_ACL					3
 #define argument_INTFIN				4
-#define argument_INTFOUT			5
-#define argument_INTFDMZ			6
-#define argument_TIMEOUT			7
-#define argument_MAXPRIORITY	8
+#define argument_INTFOUT				5
+#define argument_INTFDMZ				6
+#define argument_TIMEOUT				7
+#define argument_MAXPRIORITY			8
 #define argument_MAXLOG				9
-#define argument_INTERNALIPS	10
+#define argument_INTERNALIPS			10
 #define argument_MASQUIPS			11
 #define argument_IPIN					12
 #define argument_IPOUT				13
@@ -47,7 +47,7 @@
 #define argument_LOG_H				18
 #define argument_LOG_D				19
 
-#define fcp_token_at_all			19
+#define fcp_token_at_all					19
 
 /* the handle of the config file if we kill ourself we should close it */
 FILE *config_file;
@@ -279,9 +279,7 @@ void change_config (struct name_value *config_values)
 				  fcp_log (LOG_DEBUG, debug_msg_helper);
 				  /* Freeing the old interface if specified, alloc and copy
 				     the new value.
-                     ####################################
-                     More then one interface is NOT supported yet.
-				     #################################### */
+					More then one interface is NOT supported yet. */
 				  if (fcp_in_interface.name)
 					free (fcp_in_interface.name);
 				  fcp_in_interface.name =
@@ -298,9 +296,7 @@ void change_config (struct name_value *config_values)
 				  fcp_log (LOG_DEBUG, debug_msg_helper);
 				  /* Freeing the old interface if specified, alloc and copy
 				     the new value.
-                     ####################################
-                     More then one interface is NOT supported yet.
-				     #################################### */
+					More then one interface is NOT supported yet. */
 				  if (fcp_out_interface.name)
 					free (fcp_out_interface.name);
 				  fcp_out_interface.name =
@@ -316,9 +312,8 @@ void change_config (struct name_value *config_values)
 						   config_list->value);
 				  fcp_log (LOG_DEBUG, debug_msg_helper);
 				  /* Freeing the old interface if specified, alloc and copy
-				     the new value. #################################### More
-				     then one interface is NOT supported yet.
-				     #################################### */
+				     the new value.
+				     More then one interface is NOT supported yet. */
 				  if (fcp_dmz_interface.name)
 					free (fcp_dmz_interface.name);
 				  fcp_dmz_interface.name =
@@ -332,7 +327,7 @@ void change_config (struct name_value *config_values)
 				{
 				  sprintf (debug_msg_helper,
 						   "CONFIGURE: the timeout value %i is grater then the"
-                           " maximum %i or less 0",
+							" maximum %i or less 0",
 						   conv, FCP_MAX_TIMEOUT);
 				  fcp_log (LOG_ERR, debug_msg_helper);
 				  conv = FCP_DEFAULT_TIMEOUT;
@@ -361,28 +356,25 @@ void change_config (struct name_value *config_values)
 				{
 				  sprintf (debug_msg_helper,
 						   "CONFIGURE: %i priority classes are grater then the"
-                           " maximum %i or less 0",
+							" maximum %i or less 0",
 						   conv, FCP_MAX_PRIORITY_CLASSES);
 				  fcp_log (LOG_ERR, debug_msg_helper);
 				  conv = FCP_DEFAULT_PRIORITY_CLASSES;
 				  sprintf (debug_msg_helper,
-						   "CONFIGURE: using %i priority classes instead. NOT"
-                           " IMPLEMTED",
-						   conv);
+						"CONFIGURE: using %i priority classes instead.",
+						conv);
 				  fcp_log (LOG_ERR, debug_msg_helper);
 				}
 			  else
 				{
 				  sprintf (debug_msg_helper,
-						   "CONFIGURE: using %i priority classes. NOT"
-                           " IMPLEMENTED",
+						   "CONFIGURE: using %i priority classes.",
 						   conv);
 				  fcp_log (LOG_DEBUG, debug_msg_helper);
 				}
 			  if (conv != fcp_priorityclasses)
-				/* ###################################### here we definetly
-				   have to do some more things but at this time they are
-				   unknown !!! ###################################### */
+				/* *FIXME* here we definetly have to do some more things but
+					at this ... */
 				fcp_priorityclasses = conv;
 			  break;
 			case argument_MAXLOG:
@@ -391,28 +383,25 @@ void change_config (struct name_value *config_values)
 				{
 				  sprintf (debug_msg_helper,
 						   "CONFIGURE: %i log classes are grater then the"
-                           " maximum %i or less 0",
+							" maximum %i or less 0",
 						   conv, FCP_MAX_LOG_CLASSES);
 				  fcp_log (LOG_ERR, debug_msg_helper);
 				  conv = FCP_DEFAULT_LOG_CLASSES;
 				  sprintf (debug_msg_helper,
-						   "CONFIGURE: using %i log classes instead. NOT"
-                           " IMPLEMTED",
+						   "CONFIGURE: using %i log classes instead.",
 						   conv);
 				  fcp_log (LOG_ERR, debug_msg_helper);
 				}
 			  else
 				{
 				  sprintf (debug_msg_helper,
-						   "CONFIGURE: using %i logging classes. NOT"
-                           " IMPLEMTED",
+						   "CONFIGURE: using %i logging classes.",
 						   conv);
 				  fcp_log (LOG_DEBUG, debug_msg_helper);
 				}
 			  if (fcp_logclasses != conv)
-				/* ###################################### here we definetly
-				   have to do some more things but at this time they are
-				   unknown !!! ###################################### */
+				/* *FIXME* here we definetly have to do some more things but at
+				   this time ... */
 				fcp_logclasses = conv;
 			  break;
 			case argument_INTERNALIPS:
@@ -468,7 +457,7 @@ void change_config (struct name_value *config_values)
 					{
 					  fcp_log (LOG_ERR,
 							   "CONFIGURE: netmask in INTERNALIPS isn't"
-                               " valid");
+								" valid");
 					  this_address_list->netmask = 0xFFFFFFFF;
 					  this_address_list->address = 0;
 					}
@@ -492,7 +481,7 @@ void change_config (struct name_value *config_values)
 							{
 							  fcp_log (LOG_ERR,
 									   "CONFIGURE: IP in INTERNALIPS isn't"
-                                       " valid");
+										" valid");
 							  this_address_list->address = 0;
 							}
 						}
@@ -505,7 +494,7 @@ void change_config (struct name_value *config_values)
 							{
 							  fcp_log (LOG_ERR,
 									   "CONFIGURE: IP in INTERNALIPS isn't"
-                                       " valid");
+										" valid");
 							  this_address_list->address = 0;
 							}
 						}
@@ -513,7 +502,7 @@ void change_config (struct name_value *config_values)
 						{
 						  fcp_log (LOG_ERR,
 								   "CONFIGURE: netmask in INTERNALIPS isn't"
-                                   " valid");
+									" valid");
 						  this_address_list->netmask = 0xFFFFFFFF;
 						  this_address_list->address = 0;
 						}
@@ -624,7 +613,7 @@ void change_config (struct name_value *config_values)
 							{
 							  fcp_log (LOG_ERR,
 									   "CONFIGURE: IP in MASQUIPS isn't"
-                                       " valid");
+										" valid");
 							  this_address_list->address = 0;
 							}
 						}
@@ -637,7 +626,7 @@ void change_config (struct name_value *config_values)
 							{
 							  fcp_log (LOG_ERR,
 									   "CONFIGURE: IP in MASQUIPS isn't"
-                                       " valid");
+										" valid");
 							  this_address_list->address = 0;
 							}
 						}
@@ -645,7 +634,7 @@ void change_config (struct name_value *config_values)
 						{
 						  fcp_log (LOG_ERR,
 								   "CONFIGURE: netmask in MASQUIPS isn't"
-                                   " valid");
+									" valid");
 						  this_address_list->netmask = 0xFFFFFFFF;
 						  this_address_list->address = 0;
 						}
@@ -692,7 +681,7 @@ void change_config (struct name_value *config_values)
 				{
 				  sprintf (debug_msg_helper,
 						   "CONFIGURE: couldn't convert IP (%s) of internal"
-                           " interface",
+							" interface",
 						   config_list->value);
 				  fcp_log (LOG_ERR, debug_msg_helper);
 				}
@@ -710,7 +699,7 @@ void change_config (struct name_value *config_values)
 				{
 				  sprintf (debug_msg_helper,
 						   "CONFIGURE: couldn't convert IP (%s) of outer"
-                           " (external) interface",
+							" (external) interface",
 						   config_list->value);
 				  fcp_log (LOG_ERR, debug_msg_helper);
 				}
@@ -728,7 +717,7 @@ void change_config (struct name_value *config_values)
 				{
 				  sprintf (debug_msg_helper,
 						   "CONFIGURE: couldn't convert IP (%s) of DMZ"
-                           " interface",
+							" interface",
 						   config_list->value);
 				  fcp_log (LOG_ERR, debug_msg_helper);
 				}
@@ -897,7 +886,8 @@ void change_config (struct name_value *config_values)
 			  fcp_log (LOG_ERR, debug_msg_helper);
 			  break;
 			}
-		}						/* if result */
+		}
+	/* if result */
 	  else
 		{
 		  sprintf (debug_msg_helper,
@@ -948,9 +938,8 @@ int configure ()
   conf_para_begin = conf_para;
 
   /* read the first line */
-  /* ###################################### ATTENTION: we don't known how
-     long the next line is. so we FCP_CONFIGURE_LINE_LENGTH read characters
-     and hope the best... ###################################### */
+  /* ATTENTION: we don't known how long the next line is. so we
+	FCP_CONFIGURE_LINE_LENGTH read characters and hope the best... */
   fgets (config_file_line, FCP_CONFIGURE_LINE_LENGTH, config_file);
 
   while (!feof (config_file))

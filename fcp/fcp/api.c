@@ -119,7 +119,7 @@ void log_ipt_entry_target (struct ipt_entry_target *t)
   fcp_log (LOG_DEBUG, debug_msg_helper);
 }
 
-/* Trying to convert a state into an ipt_entry for iptables. Returns TRUE for
+/* Trying to convert a state into an ipt_entry for iptables. Returns 1 for
    OK and 0 if failed. If returned 0 the string error will be filled with
    reason for returning to client. If option is 1 a ipt_entry sturcture for
    the NAT table have to be created. If option is 2 a ipt_entry structure for
@@ -138,8 +138,6 @@ static struct ipt_entry *state_to_iptentry (struct fcp_state *state,
   struct ipt_entry_target *target;
   /* the temporary nat strucutre */
   struct ip_nat_multi_range *nat;
-  /* a helper to go through the fcp_internals_ips */
-  // struct fcp_address_list *list;
   /* the sizes of the header, the target, the match, and the return */
   size_t fw_size, target_size, match_size, ret_size;
   /* target_b and macht_b are boolean which indicate if we have a match at
@@ -176,7 +174,6 @@ static struct ipt_entry *state_to_iptentry (struct fcp_state *state,
   ret_size = 0;
   match_size = 0;
   target_size = 0;
-  // ip_found = 0;
 
   /* first of all allocate a header, null the memory and set the according
      offsets */
@@ -204,8 +201,8 @@ static struct ipt_entry *state_to_iptentry (struct fcp_state *state,
 	  if (!target)
 		{
 		  fcp_log (LOG_CRIT,
-				   "API: state_to_iptentry: couldn't allocate"
-                   " memory for nat_target");
+					"API: state_to_iptentry: couldn't allocate"
+					" memory for nat_target");
 		  sprintf (error,
 				   "500 Server Internal Error: couldn't allocate memory");
 		  free (fw);
@@ -216,10 +213,6 @@ static struct ipt_entry *state_to_iptentry (struct fcp_state *state,
 	  target->u.target_size = target_size;
 	  target_b = 1;
 
-	  /* search the srcip in the list of internal ips */
-	  /* list = fcp_internal_ips.next; while (list && !ip_found) { ip_found =
-	     ip_is_in_tuple (list->address, list->netmask, fcp.pme->src_ip); list
-	     = list->next; } */
 	  /* If the direction is OUT_IN we make destination NAT otherwise we make
 	     source NAT. */
 	  if (fcp.direction == OUT_IN || fcp.direction == DMZ_IN)
@@ -304,7 +297,7 @@ static struct ipt_entry *state_to_iptentry (struct fcp_state *state,
 			{
 			  fcp_log (LOG_CRIT,
 					   "API: state_to_iptentry: couldn't allocate memory for"
-                       " mangle_target");
+						" mangle_target");
 			  sprintf (error,
 					   "500 Server Internal Error: couldn't allocate memory");
 			  free (fw);
@@ -323,7 +316,7 @@ static struct ipt_entry *state_to_iptentry (struct fcp_state *state,
 		{
 		  sprintf (error,
 				   "402 Invalid Control State Field Value: unknown/unsurported"
-                   " type of service (TOS) %u in packet modifier",
+					" type of service (TOS) %u in packet modifier",
 				   fcp.sop->packet_modf.tos_fld);
 		  return NULL;
 		}
@@ -367,7 +360,7 @@ static struct ipt_entry *state_to_iptentry (struct fcp_state *state,
 			{
 			  fcp_log (LOG_CRIT,
 					   "API: state_to_iptentry: couldn't allocate memory for"
-                       " target");
+						" target");
 			  sprintf (error,
 					   "500 Server Internal Error: couldn't allocate memory");
 			  free (fw);
@@ -399,7 +392,7 @@ static struct ipt_entry *state_to_iptentry (struct fcp_state *state,
 			{
 			  fcp_log (LOG_CRIT,
 					   "API: state_to_iptentry: couldn't allocate memory for"
-                       " target and reject_info");
+						" target and reject_info");
 			  sprintf (error,
 					   "500 Server Internal Error: couldn't allocate memory");
 			  free (fw);
@@ -521,7 +514,7 @@ static struct ipt_entry *state_to_iptentry (struct fcp_state *state,
 		{
 		  sprintf (error,
 				   "500 Server Internal Error: name of interface IN is to"
-                   " long");
+					" long");
 		  return_val = 0;
 		}
 	  if ((fcp.pme->in_if == FCP_INTERFACE_OUT
@@ -530,7 +523,7 @@ static struct ipt_entry *state_to_iptentry (struct fcp_state *state,
 		{
 		  sprintf (error,
 				   "500 Server Internal Error: name of interface OUT is to"
-                   " long");
+					" long");
 		  return_val = 0;
 		}
 	  if ((fcp.pme->in_if == FCP_INTERFACE_DMZ
@@ -539,7 +532,7 @@ static struct ipt_entry *state_to_iptentry (struct fcp_state *state,
 		{
 		  sprintf (error,
 				   "500 Server Internal Error: name of interface DMZ is not"
-                   " specified");
+					" specified");
 		  return_val = 0;
 		}
 	  if ((fcp.pme->in_if == FCP_INTERFACE_DMZ
@@ -548,10 +541,10 @@ static struct ipt_entry *state_to_iptentry (struct fcp_state *state,
 		{
 		  sprintf (error,
 				   "500 Server Internal Error: name of interface DMZ is to"
-                   " long");
+					" long");
 		  return_val = 0;
 		}
-	  /* *FIXME*nils* if only one interface is given we have to install two
+	  /* *FIXME* if only one interface is given we have to install two
 	     rules. one in the FORWARD and one in the INPUT or OUTPUT chain. this
 	     is to complecated so we report an error. */
 	  if ((fcp.pme->in_if_def && !fcp.pme->out_if_def) ||
@@ -559,7 +552,7 @@ static struct ipt_entry *state_to_iptentry (struct fcp_state *state,
 		{
 		  sprintf (error,
 				   "501 Not Implemented: no support for mutiple interface"
-                   " (only one interface was specified)");
+					" (only one interface was specified)");
 		  return_val = 0;
 		}
 		/* If all checks above are ok copy the strings */
@@ -930,9 +923,9 @@ static struct ipt_entry *state_to_iptentry (struct fcp_state *state,
 		else
 		{
 			sprintf (error,
-							"402 Invalid Control State Field Value: unknown/unsurported"
-							" type of service (TOS) %u in PME",
-							fcp.pme->tos_fld);
+					"402 Invalid Control State Field Value: unknown/unsurported"
+					" type of service (TOS) %u in PME",
+					fcp.pme->tos_fld);
 			free (fw);
 			free (target);
 			if (match_b) free (match);
@@ -1169,7 +1162,7 @@ int fcp_rule_insert (struct fcp_state *state, char *errstr)
 		  fcp_log (LOG_ERR, "API: maybe missing iptable_mangle module ?!");
 		  sprintf (errstr,
 				   "502 Service Unavailable: TOS modifying support"
-                   " missing ?!");
+					" missing ?!");
 		  return 0;
 		}
 	  /* set the name of the chain */
@@ -1200,7 +1193,7 @@ int fcp_rule_insert (struct fcp_state *state, char *errstr)
 				  fcp_log (LOG_ERR, debug_msg_helper);
 				  sprintf (errstr,
 						   "500 Server Internal Error: rule commit"
-                           " returned %i",
+							" returned %i",
 						   errno);
 				  free (entry);
 				  return 0;
@@ -1267,7 +1260,7 @@ int fcp_rule_insert (struct fcp_state *state, char *errstr)
 				  fcp_log (LOG_ERR, debug_msg_helper);
 				  sprintf (errstr,
 						   "500 Server Internal Error: rule commit"
-                           " returned %i",
+							" returned %i",
 						   errno);
 				  free (entry);
 				  return 0;
@@ -1338,10 +1331,6 @@ int fcp_rule_insert (struct fcp_state *state, char *errstr)
 		}
 	  fcp_log (LOG_DEBUG,
 			   "API: trying to insert rule with iptc_insert_entry");
-	  /* ##################################### *FIXME* Simple pinholes hav
-	     highest priority, so we insert them every time at place 0. In real
-	     we have to determine with the priority classes where the rule have
-	     to be inserted. ##################################### */
 	  ret = iptc_insert_entry (default_chain, entry, rule_position, &handle);
 
 	  if (ret)
@@ -1441,8 +1430,8 @@ int fcp_rule_insert (struct fcp_state *state, char *errstr)
 	  free (entry);
 	  return ret;
 	}
-  else							/* state_to_iptentry failed and filled errstr
-								   (hopefully) */
+  else
+	/* state_to_iptentry failed and filled errstr (hopefully) */
 	return 0;
 };
 
@@ -1475,7 +1464,7 @@ int fcp_rule_delete (struct fcp_state *state, char *errstr)
 		  fcp_log (LOG_ERR, "API: maybe missing iptable_mangle module ?!");
 		  sprintf (errstr,
 				   "502 Service Unavailable: TOS modifying support"
-                   " missing ?!");
+					" missing ?!");
 		  return 0;
 		}
 	  /* set the name of the chain */
@@ -1512,7 +1501,7 @@ int fcp_rule_delete (struct fcp_state *state, char *errstr)
 				  fcp_log (LOG_ERR, debug_msg_helper);
 				  sprintf (errstr,
 						   "500 Server Internal Error: rule commit"
-                           " returned %i",
+							" returned %i",
 						   errno);
 				  free (entry);
 				  return 0;
@@ -1532,7 +1521,8 @@ int fcp_rule_delete (struct fcp_state *state, char *errstr)
 			  return 0;
 			}
 		}
-	  else						/* state_to_iptentry failed */
+	  else
+			/* state_to_iptentry failed */
 			return 0;
 	  free (entry);
 	  handle = NULL;
@@ -1574,7 +1564,7 @@ int fcp_rule_delete (struct fcp_state *state, char *errstr)
 					sprintf (debug_msg_helper, "API: %s", iptc_strerror(errno));
 					fcp_log (LOG_ERR, debug_msg_helper);
 					sprintf (errstr, "500 Server Internal Error: rule commit returned %i",
-										errno);
+								errno);
 					free (entry);
 					return 0;
 				}
@@ -1582,17 +1572,18 @@ int fcp_rule_delete (struct fcp_state *state, char *errstr)
 			else
 			{
 				sprintf (debug_msg_helper, "API: iptc_delete_entry for masq retuned %i",
-									errno);
+							errno);
 				fcp_log (LOG_ERR, debug_msg_helper);
 				sprintf (debug_msg_helper, "API: %s", iptc_strerror (errno));
 				fcp_log (LOG_ERR, debug_msg_helper);
 				sprintf (errstr, "500 Server Internal Error: rule delete returned %i",
-									errno);
+							errno);
 				free (entry);
 				return 0;
 			}
 		}
-		else /* state_to_iptentry failed */
+		else
+			 /* state_to_iptentry failed */
 			return 0;
 		free (entry);
 		handle = NULL;
@@ -1627,12 +1618,11 @@ int fcp_rule_delete (struct fcp_state *state, char *errstr)
 
 	  fcp_log (LOG_DEBUG,
 			   "API: trying to delete rule with iptc_delete_entry");
-	  /* ####################################### If this func is called a
-	     state was found, so we assume that a rule representing the state is
-	     in the firewall. If not the iptc_delete_entry call will fail. Also
-	     this call will delete the first rule which matches, so if their are
-	     more then one rule in the firewall only the first will be deleted
-	     !!! ####################################### */
+	  /* If this func is called a state was found, so we assume that a rule
+		representing the state is in the firewall. If not the iptc_delete_entry
+		call will fail. Also this call will delete the first rule which matches,
+		so if their are more then one rule in the firewall only the first will
+		be deleted !!! */
 	  ret = iptc_delete_entry (default_chain, entry, mask, &handle);
 
 	  if (ret)
@@ -1643,12 +1633,12 @@ int fcp_rule_delete (struct fcp_state *state, char *errstr)
 			{
 			  fcp_log (LOG_DEBUG,
 					   "API: trying to convert state into ipt_entry for"
-                       " logging");
+						" logging");
 			  if ((entry = state_to_iptentry (state, errstr, 3)) != NULL)
 				{
 				  fcp_log (LOG_DEBUG,
 						   "API: trying to remove logging rule with"
-                           " iptc_delete_entry");
+							" iptc_delete_entry");
 				  free (mask);
 				  mask = make_delete_mask (entry->next_offset);
 				  mask_hole_offset = mask_hole_size = 0;
@@ -1666,7 +1656,7 @@ int fcp_rule_delete (struct fcp_state *state, char *errstr)
 					  fcp_log (LOG_ERR, debug_msg_helper);
 					  sprintf (errstr,
 							   "500 Server Internal Error: rule deletion"
-                               " returned %i",
+								" returned %i",
 							   errno);
 					  free (entry);
 					  return 0;
@@ -1712,7 +1702,7 @@ int fcp_rule_delete (struct fcp_state *state, char *errstr)
 			  fcp_log (LOG_ERR, debug_msg_helper);
 			  sprintf (errstr,
 					   "500 Server Internal Error: deletion commit"
-                       " returned %i",
+						" returned %i",
 					   errno);
 			  return 0;
 			}
@@ -1773,7 +1763,7 @@ int fcp_port_request (struct fcp_reserved *res, char *errstr)
 		  fcp_log (LOG_ERR, debug_msg_helper);
 		  sprintf (errstr,
 				   "500 Server Internal Error: error while trying to allocate"
-                   " a port for NAT");
+					" a port for NAT");
 		  free (api_s);
 		  api_s = NULL;
 		  okay = 0;
@@ -1797,14 +1787,14 @@ int fcp_port_request (struct fcp_reserved *res, char *errstr)
 			{
 			  fcp_log (LOG_ERR,
 					   "API: fcp_port_request: error while trying to bind a"
-                       " socket");
+						" socket");
 			  sprintf (debug_msg_helper,
 					   "API: fcp_port_request: bind() call returned %i",
 					   errno);
 			  fcp_log (LOG_ERR, debug_msg_helper);
 			  sprintf (errstr,
 					   "500 Server Internal Error: error while trying to"
-                       " allocate a port for NAT");
+						" allocate a port for NAT");
 			  close (api_s->socket);
 			  free (api_s);
 			  api_s = NULL;
@@ -1823,15 +1813,15 @@ int fcp_port_request (struct fcp_reserved *res, char *errstr)
 				{
 				  fcp_log (LOG_ERR,
 						   "API: fcp_port_request: error while trying to"
-                           " determine the port of the socket");
+							" determine the port of the socket");
 				  sprintf (debug_msg_helper,
 						   "API: fcp_port_request: getsockname() call"
-                           " returned %i",
+							" returned %i",
 						   errno);
 				  fcp_log (LOG_ERR, debug_msg_helper);
 				  sprintf (errstr,
 						   "500 Server Internal Error: error while trying to"
-                           " allocate a port for NAT");
+							" allocate a port for NAT");
 				  close (api_s->socket);
 				  free (api_s);
 				  okay = 0;
@@ -1860,9 +1850,9 @@ int fcp_port_request (struct fcp_reserved *res, char *errstr)
 	  api_s->next = tmp_s;
 	  if (res->masq_uppt)
 		sprintf (debug_msg_helper,
-				 "API: fcp_port_request: succesfull from port %u to %u"
-                 " reserved",
-				 res->masq_port, res->masq_uppt);
+				"API: fcp_port_request: succesfull from port %u to %u"
+				" reserved",
+				res->masq_port, res->masq_uppt);
 	  else
 		sprintf (debug_msg_helper,
 				 "API: fcp_port_request: succesfull port %u reserved",
@@ -1925,7 +1915,7 @@ int fcp_port_release (struct fcp_reserved *res, char *errstr)
 				{
 				  sprintf (debug_msg_helper,
 						   "API: fcp_port_release: socket with port %u not"
-                           " found to release",
+							" found to release",
 						   i);
 				  fcp_log (LOG_WARNING, debug_msg_helper);
 				  api_s = api_s->next;
@@ -1936,7 +1926,7 @@ int fcp_port_release (struct fcp_reserved *res, char *errstr)
 			{
 			  sprintf (debug_msg_helper,
 					   "API: fcp_port_release: succesfull ports from %u to %u"
-                       " released",
+						" released",
 					   res->masq_port, res->masq_uppt);
 			  fcp_log (LOG_DEBUG, debug_msg_helper);
 			  res->masq_port = res->masq_uppt = res->masq_ip = 0;
@@ -1946,7 +1936,7 @@ int fcp_port_release (struct fcp_reserved *res, char *errstr)
 			{
 			  sprintf (errstr,
 					   "500 Server Internal Error: couldn't release all ports"
-                       " of the range (%u - %u)",
+						" of the range (%u - %u)",
 					   res->origin_port, res->origin_uppt);
 			  return 0;
 			}
@@ -1963,7 +1953,7 @@ int fcp_port_release (struct fcp_reserved *res, char *errstr)
 	  /* We haven't found the socket so report this error. */
 	  sprintf (debug_msg_helper,
 			   "API: fcp_port_release: socket with port %u with masq port %u"
-               " to release not found",
+				" to release not found",
 			   res->masq_port, res->origin_port);
 	  fcp_log (LOG_NOTICE, debug_msg_helper);
 	  sprintf (errstr,
@@ -1986,11 +1976,14 @@ void fcp_api_init ()
 		  sizeof (priority_classes_output[FCP_MAX_PRIORITY_CLASSES]));
   memset (&priority_classes_forward[0], 0,
 		  sizeof (priority_classes_forward[FCP_MAX_PRIORITY_CLASSES]));
-  /* *FIXME* Here we can/should check if iptables is initalised, the policy
-     of the chains are correct, determine the IPs of the interfaces... */
+  /* *FIXME* We have to determine how many rule exists in the chains at startup!
+	Here we can/should check if iptables is initalised, the policy
+	of the chains are correct, determine the IPs of the interfaces... */
 };
 
 #else /* LINUX_VERSION_CODE */
+
+/* This code for ipchains will not longer mantained by the authors !!! */
 
 /* This helper function tryes to convert a state of fcp into a ip_fwuser from
    the library libipfwc of ipchains. Returns 1: ok, 0: failed If returned 0
@@ -2001,8 +1994,7 @@ int state_to_ipfwuser (struct fcp_state *state, struct ip_fwuser *ipfw,
   struct fcp_state fcp = *state;
 
   /* evaluate the action if it's set, else set no action */
-  if ((fcp.sop != NULL) && (fcp.sop->action_def))	/* will this segfault, if
-													   fcp.sop is NULL ??? */
+  if ((fcp.sop != NULL) && (fcp.sop->action_def))	
 	{
 	  if (fcp.sop->action == fcp_action_pass)
 		strcpy ((*ipfw).label, "ACCEPT");
@@ -2044,8 +2036,7 @@ int state_to_ipfwuser (struct fcp_state *state, struct ip_fwuser *ipfw,
   else
 	(*ipfw).ipfw.fw_dmsk.s_addr = 0;
 
-  /* ############################## We don't support marking of packets, so
-     set it to 0 ############################## */
+  /* We don't support marking of packets, so set it to 0 */
   (*ipfw).ipfw.fw_mark = 0;
 
   /* If a protocol is defines copy it, else set it to 0 */
@@ -2054,10 +2045,9 @@ int state_to_ipfwuser (struct fcp_state *state, struct ip_fwuser *ipfw,
   else
 	(*ipfw).ipfw.fw_proto = 0;
 
-  /* ############################# We only look for the syn flag... I got
-     these values only from viewing existing rules. How should we handle the
-     combinations of syn_allowed and actions ?????
-     ############################# */
+  /* We only look for the syn flag... I got these values only from viewing
+	existing rules. How should we handle the combinations of
+	syn_allowed and actions ????? */
   if (fcp.pme->syn_flg_def)
 	{
 	  /* If TCPSYNALLOWED is set to yes we don't set any flag. */
@@ -2070,14 +2060,12 @@ int state_to_ipfwuser (struct fcp_state *state, struct ip_fwuser *ipfw,
 		{
 		  (*ipfw).ipfw.fw_flg = (IP_FW_F_WILDIF + IP_FW_F_TCPSYN);
 		  (*ipfw).ipfw.fw_invflg = IP_FW_INV_SYN;
-		  // fcp_log (LOG_DEBUG, "API: set <! -y>");
 		}
 	}
   else
 	{
 	  (*ipfw).ipfw.fw_flg = IP_FW_F_WILDIF;
 	  (*ipfw).ipfw.fw_invflg = 0;
-	  // fcp_log (LOG_DEBUG, "API: no syn_flg_def found");
 	}
 
   /* If a lower port is definied copy it, else set the complete port range
@@ -2107,25 +2095,22 @@ int state_to_ipfwuser (struct fcp_state *state, struct ip_fwuser *ipfw,
   else if (fcp.pme->dst_pt_def)
 	(*ipfw).ipfw.fw_dpts[1] = fcp.pme->dst_pt;
 
-  /* ################################## We don't support redirecting of
-     ports, so set it to 0 ################################# */
+  /* We don't support redirecting of ports, so set it to 0 */
   (*ipfw).ipfw.fw_redirpt = 0;
 
-  /* ################################ What is outputsize ? We don't support
-     it, so set it to 0 ################################ */
+  /* What is outputsize ? We don't support it, so set it to 0 */
   (*ipfw).ipfw.fw_outputsize = 0;
 
   if (fcp.pme->in_if_def || fcp.pme->out_if_def)
 	{
 	  sprintf (error,
 			   "501 Not Implemented: Interfaces are not supported by this"
-               " version");
+				" version");
 	  return 0;
 	}
   else
 	{
-	  /* ################################ We don't support any interfaces at
-	     this time, so we write nothing. ################################ */
+	  /* We don't support any interfaces at this time, so we write nothing. */
 	  strcpy ((*ipfw).ipfw.fw_vianame, "\0");
 	}
 
@@ -2137,8 +2122,7 @@ int state_to_ipfwuser (struct fcp_state *state, struct ip_fwuser *ipfw,
 	}
   else
 	{
-	  /* ############################### We don't support the tos field, so
-	     set it to 255 ############################### */
+	  /* We don't support the tos field, so set it to 255 */
 	  (*ipfw).ipfw.fw_tosand = 255;
 	}
 
@@ -2162,9 +2146,7 @@ int ipfw_to_pme (struct ip_fw *rule_ip_fw, struct fcp_pme *pme, char *error)
 {
   struct ip_fw ipfw = *rule_ip_fw;
 
-  /* copy protocol value ################################# if protocol is 0
-     set it as undefined. Is this right ?????
-     ################################# */
+  /* copy protocol value  */
   if (ipfw.fw_proto != 0)
 	{
 	  (*pme).proto = ipfw.fw_proto;
@@ -2253,9 +2235,8 @@ int ipfw_to_pme (struct ip_fw *rule_ip_fw, struct fcp_pme *pme, char *error)
   (*pme).icmp_type = 0;
   (*pme).icmp_type_def = 0;
 
-  /* ############################ At this time we don't support interfaces so
-     set it all to zero. Here we should convert ipfw.fw_vianame...
-     ############################ */
+  /* At this time we don't support interfaces so
+     set it all to zero. Here we should convert ipfw.fw_vianame... */
   (*pme).in_if = 0;
   (*pme).in_if_def = 0;
   (*pme).out_if = 0;
@@ -2273,9 +2254,8 @@ int fcp_rule_insert (struct fcp_state *state, char *errstr)
 
   // fcp_log_fcp_state (state);
 
-  /* ###################################### Simple pinholes make only sence
-     in the forward chain. In real we have to set this according to the
-     interfaces. ###################################### */
+  /* Simple pinholes make only sence in the forward chain. In real we
+	have to set this according to the interfaces. */
   strcpy (default_chain, "forward");
 
   fcp_log (LOG_DEBUG, "API: trying to convert state into ip_fwuser");
@@ -2284,12 +2264,11 @@ int fcp_rule_insert (struct fcp_state *state, char *errstr)
 	{
 	  fcp_log (LOG_DEBUG,
 			   "API: trying to insert rule with ipfwc_insert_entry");
-	  /* ##################################### Simple pinholes hav highest
-	     priority, so we insert them every time at place 1. In real we have
-	     to determine with the priority classes where the rule have to be
-	     inserted. Also we should interpret errno if insert fails, because it
-	     should deliver more info about the failure.
-	     ##################################### */
+	  /* Simple pinholes hav highest priority, so we insert them every
+		time at place 1. In real we have to determine with the priority
+		classes where the rule have to be inserted. Also we should
+		interpret errno if insert fails, because it should deliver more
+		info about the failure. */
 	  ret = ipfwc_insert_entry (default_chain, &ipc_rule, 1);
 
 	  if (ret)
@@ -2317,9 +2296,8 @@ int fcp_rule_delete (struct fcp_state *state, char *errstr)
   struct ip_fwuser ipc_rule;
   ip_chainlabel default_chain;
 
-  /* ###################################### Simple pinholes make only sence
-     in the forward chain. In real we have to set this according to the
-     interfaces. ###################################### */
+  /* Simple pinholes make only sence in the forward chain. In real we
+   have to set this according to the interfaces. */
   strcpy (default_chain, "forward");
 
   fcp_log (LOG_DEBUG, "API: trying to convert state into ip_fwuser");
@@ -2328,12 +2306,11 @@ int fcp_rule_delete (struct fcp_state *state, char *errstr)
 	{
 	  fcp_log (LOG_DEBUG,
 			   "API: trying to delete rule with ipfwc_delete_entry");
-	  /* ####################################### If this func is called a
-	     state was found, so we assume that a rule representing the state is
-	     in the firewall. If not the ipfwc_delete_entry call will fail. Also
-	     this call will delete the first rule which matches, so if their are
-	     more then one rule in the firewall only the first will be deleted
-	     !!! ####################################### */
+	  /* If this func is called a state was found, so we assume that a rule
+		representing the state is in the firewall. If not the ipfwc_delete_entry
+		call will fail. Also this call will delete the first rule which matches,
+		so if their are more then one rule in the firewall only the first will
+		be deleted !!! */
 	  ret = ipfwc_delete_entry (default_chain, &ipc_rule);
 
 	  if (ret)
@@ -2387,9 +2364,7 @@ void fcp_api_init ()
 
 #else /* ifdef LINUX_VERSION_CODE */
 
-/* ################################################### The following
-   implementation is only a dummy to compile on not Linux systems.
-   ################################################### */
+/* The following implementation is only a dummy to compile on not Linux systems.*/
 
 int fcp_rule_insert (struct fcp_state *state, char *errstr)
 {
@@ -2419,8 +2394,6 @@ int fcp_port_release (struct fcp_reserved *res, char *errstr)
   return 0;
 };
 
-/* This function is called from main at startup of the server. So here can
-   all nessecary things be initalised or checked. */
 void fcp_api_init ()
 {
 };

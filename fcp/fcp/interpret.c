@@ -96,7 +96,6 @@ struct fcp_pme *pme;			/* Holds the PackeMatchingExpression */
 struct fcp_sop *sop;			/* Holds the SetOptions */
 struct fcp_state *state;		/* the current request's state */
 struct fcp_reserved *reserved;	/* NAT */
-// struct reserved_list *res_helper;
 
 struct state_list *states;
 struct state_list *states_helper;
@@ -381,10 +380,7 @@ int set_action (struct fcp_state *st, char *reply)
 			  }
 		  }						/* end compare_pme */
 	  if ((!compare_setopts (state_l->state->sop, st->sop))
-        && (compare_pme (state_l->state->pme, st->pme, 0)))	/* rule
-																												   change
-																												 */
-/* change rule! *//* *uli* bring if cases in order, no two pme-checks please ! */
+        && (compare_pme (state_l->state->pme, st->pme, 0)))	/* rule change */
 		{
 		  fcp_log (LOG_INFO,
 				   "INTERPRET: found matching rule -> change SETOPTS");
@@ -404,10 +400,6 @@ int set_action (struct fcp_state *st, char *reply)
 			}
 		  else
 			sprintf (reply, "FCP=%s SEQ=%i %s", FCP_VERSION, seq, api_error);
-		  /* memory leak ?? *future* */
-		  /* TODO: free allocated structures here too -- i think it's all to
-		     be freed */
-		  // FCP_FREE_MEM
 		  free (st->pme);
 		  free (st->sop);
 		  free (st->owner_ip);
@@ -420,9 +412,6 @@ int set_action (struct fcp_state *st, char *reply)
   if (is_keep_alive == 1)		/* keep alive succeded */
 	{
 	  sprintf (reply, "FCP=%s SEQ=%i 201 Keeping Alive", FCP_VERSION, seq);
-	  /* TODO: free allocated structures here too -- i think it's all to be
-	     freed */
-	  // FCP_FREE_MEM
 	  free (st->pme);
 	  free (st->sop);
 	  free (st->owner_ip);
@@ -442,7 +431,7 @@ int set_action (struct fcp_state *st, char *reply)
 	  while (reservs->next != NULL && ret)
 		{
 		  reservs = reservs->next;
-			/**FIXME* Is in every reservation the origin ip not zero?
+			/* Is in every reservation the origin ip not zero?
 				If not the following compare could be a problem. */
 		  if (reservs->res->origin_ip == st->pme->src_ip
 			  || reservs->res->origin_ip == st->pme->dst_ip)
@@ -460,20 +449,20 @@ int set_action (struct fcp_state *st, char *reply)
 				  alarm (0);
 				  fcp_log (LOG_DEBUG,
 						   "INTERPRET: setting alarm to 0 cause no rule left "
-                           "to delete automaticly");
+							"to delete automaticly");
 				}
 			  st->masq_ip = reservs->res->masq_ip;
 			  st->masq_port = reservs->res->masq_port;
 			  st->masq_uppt = reservs->res->masq_uppt;
 			  fcp_log (LOG_INFO,
 					   "INTERPRET: reservation for rule found. masqueradings"
-                       " copied.");
+						" copied.");
 			  ret = 0;
 			}
 		}
 	  if (ret)
 		{
-			/**FIXME* Should it be possible to set up a rule without a reservation?
+			/* Should it be possible to set up a rule without a reservation?
 				If not we have to return an error here.
 				At this time we have no reservations for NAT_REQUESTS which we don't
 				have to masquerade.  */
@@ -486,7 +475,6 @@ int set_action (struct fcp_state *st, char *reply)
 		  sprintf (debug_msg_helper, "INTERPRET: %s", api_error);
 		  fcp_log (LOG_ERR, debug_msg_helper);
 		  sprintf (reply, "FCP=%s SEQ=%i %s", FCP_VERSION, seq, api_error);
-		  // FCP_FREE_MEM
 		  free (st->pme);
 		  free (st->sop);
 		  free (st->owner_ip);
@@ -528,7 +516,6 @@ int set_action (struct fcp_state *st, char *reply)
 						   "INTERPRET: %u left to next alarm", alm_rem);
 				  fcp_log (LOG_DEBUG, debug_msg_helper);
 				  state_list_base->time_next->distance_ttl = alm_rem;
-				  // distance_ttl_sum = 0;
 				}
 			  /* insert the state in the time ordered list */
 			  time_list_insert (state_l->next, req_time);
@@ -593,7 +580,6 @@ int release_action (struct fcp_state *st, char *reply, char *own, int *reflex)
 			  sprintf (reply, "FCP=%s SEQ=%i %s", FCP_VERSION, seq,
 					   api_error);
 			  fcp_log (LOG_DEBUG, "INTERPRET: exiting");
-			  // FCP_FREE_MEM
 			  free (st->pme);
 			  free (st->sop);
 			  free (st->owner_ip);
@@ -663,7 +649,7 @@ int release_action (struct fcp_state *st, char *reply, char *own, int *reflex)
 					  alarm (0);
 					  fcp_log (LOG_DEBUG,
 							   "INTERPRET: setting alarm to 0 cause no rule "
-                               "left to delete automaticly");
+								"left to delete automaticly");
 					}
 				}
 			  else
@@ -675,7 +661,6 @@ int release_action (struct fcp_state *st, char *reply, char *own, int *reflex)
 				}
 			  /* freeing the memory of the state */
 			  free (state_l->state->pme);
-			  // free (states->state->sop->packet_modf);
 			  free (state_l->state->sop);
 			  free (state_l->state->owner_ip);
 			  free (state_l->state);
@@ -691,9 +676,8 @@ int release_action (struct fcp_state *st, char *reply, char *own, int *reflex)
 	  fcp_log (LOG_INFO, "INTERPRET: no matching rule found to remove");
 	  sprintf (reply,
 			   "FCP=%s SEQ=%i 400 Bad Request: no matching rule found to "
-               "release",
+				"release",
 			   FCP_VERSION, seq);
-	  // FCP_FREE_MEM
 	  free (st->pme);
 	  free (st->sop);
 	  free (st->owner_ip);
@@ -703,7 +687,6 @@ int release_action (struct fcp_state *st, char *reply, char *own, int *reflex)
   else
 	{
 	  sprintf (reply, "FCP=%s SEQ=%i 200 OK", FCP_VERSION, seq);
-	  // FCP_FREE_MEM
 	  free (st->pme);
 	  free (st->sop);
 	  free (st->owner_ip);
@@ -810,9 +793,9 @@ struct fcp_state *create_reflex (struct fcp_state *st)
   return reflex_state;
 }
 
-/* takes name_value_list and produces rep(ly) */
-/* it should fill the global-state list defined in main.h */
-/* if not commented please take a look at the according error message */
+/* takes name_value_list and produces rep(ly)
+   it should fill the global-state list defined in main.h
+   if not commented please take a look at the according error message */
 int interpret (struct name_value *pairs, char **rep_input, char *owner)
 {
   int res;
@@ -848,8 +831,6 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
   sop = malloc (sizeof (struct fcp_sop));
   memset (sop, 0, sizeof (struct fcp_sop));
 
-  // sop->packet_modf = malloc (sizeof (struct fcp_pme));
-  // memset (sop->packet_modf, 0, sizeof (struct fcp_pme));
 
   state = malloc (sizeof (struct fcp_state));
   memset (state, 0, sizeof (struct fcp_state));
@@ -862,44 +843,6 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
   state->sop = sop;
   state->owner_ip = malloc (sizeof owner);
   strcpy (state->owner_ip, owner);
-
-  /* initialize */
-
-  /* pme->proto = 0; pme->proto_def = 0; pme->src_ip = 0; pme->src_ip_def =
-     0; pme->dst_ip = 0; pme->dst_ip_def = 0; pme->src_netmask = 0;
-     pme->src_netmask_def = 0; pme->dst_netmask = 0; pme->dst_netmask_def =
-     0; pme->src_pt = 0; pme->src_pt_def = 0; pme->src_uppt = 0;
-     pme->src_uppt_def = 0; pme->dst_pt = 0; pme->dst_pt_def = 0;
-     pme->dst_uppt = 0; pme->dst_uppt_def = 0; pme->tos_fld = 0;
-     pme->tos_fld_def = 0; pme->syn_flg = 0; pme->syn_flg_def = 0;
-     pme->icmp_type = 0; pme->icmp_type_def = 0; pme->in_if = 0;
-     pme->in_if_def = 0; pme->out_if = 0; pme->out_if_def = 0; */
-
-  /* sop->action = 0, sop->action_def = 0; sop->timer = 0, sop->timer_def =
-     0; sop->reflexive = 0, sop->reflexive_def = 0; sop->pri_class = 0,
-     sop->pri_class_def = 0; sop->log = 0, sop->log_def = 0; */
-
-  /* sop->packet_modf->proto = 0; sop->packet_modf->proto_def = 0;
-     sop->packet_modf->src_ip = 0; sop->packet_modf->src_ip_def = 0;
-     sop->packet_modf->dst_ip = 0; sop->packet_modf->dst_ip_def = 0;
-     sop->packet_modf->src_netmask = 0; sop->packet_modf->src_netmask_def =
-     0; sop->packet_modf->dst_netmask = 0; sop->packet_modf->dst_netmask_def
-     = 0; sop->packet_modf->src_pt = 0; sop->packet_modf->src_pt_def = 0;
-     sop->packet_modf->src_uppt = 0; sop->packet_modf->src_uppt_def = 0;
-     sop->packet_modf->dst_pt = 0; sop->packet_modf->dst_pt_def = 0;
-     sop->packet_modf->dst_uppt = 0; sop->packet_modf->dst_uppt_def = 0;
-     sop->packet_modf->tos_fld = 0; sop->packet_modf->tos_fld_def = 0;
-     sop->packet_modf->syn_flg = 0; sop->packet_modf->syn_flg_def = 0;
-     sop->packet_modf->icmp_type = 0; sop->packet_modf->icmp_type_def = 0;
-     sop->packet_modf->in_if = 0; sop->packet_modf->in_if_def = 0;
-     sop->packet_modf->out_if = 0; sop->packet_modf->out_if_def = 0; */
-  /* end init packet_modf */
-
-  /* state->masq_ip = 0; state->masq_port = 0; state->masq_uppt = 0; */
-
-  /* reserved->masq_ip = 0; reserved->masq_port = 0; reserved->masq_uppt = 0;
-     reserved->origin_ip = 0; reserved->origin_port = 0; reserved->origin_uppt
-     = 0; reserved->proto = 0; */
 
   /* check all name-value pairs */
   while (pairs->name != NULL)
@@ -917,7 +860,7 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 			{
 			  sprintf (rep,
 					   "FCP=%s SEQ=%i 402 Invalid Control State Field Value: "
-                       "Must specify value for %s",
+						"Must specify value for %s",
 					   FCP_VERSION, seq, token_names[res]);
 			  *rep_input = rep;
 			  FCP_FREE_MEM return 1;
@@ -927,7 +870,7 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 			{
 			  sprintf (rep,
 					   "FCP=%s SEQ=%i 402 Invalid Control State Field Value: "
-                       "Must not specify value for %s",
+						"Must not specify value for %s",
 					   FCP_VERSION, seq, token_names[res]);
 			  *rep_input = rep;
 			  FCP_FREE_MEM return 1;
@@ -944,7 +887,7 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 				{
 				  sprintf (rep,
 						   "FCP=%s SEQ=%i 400 Bad Request: %s only allowed "
-                           "initially",
+							"initially",
 						   FCP_VERSION, seq, token_names[res]);
 				  *rep_input = rep;
 				  FCP_FREE_MEM return 1;
@@ -956,7 +899,7 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 				{
 				  sprintf (rep,
 						   "FCP=%s SEQ=%i 400 Bad Request: %s must follow SET,"
-                           " RELEASE, QUERYNAT, RELEASENAT or QUERY",
+							" RELEASE, QUERYNAT, RELEASENAT or QUERY",
 						   FCP_VERSION, seq, token_names[res]);
 				  *rep_input = rep;
 				  FCP_FREE_MEM return 1;
@@ -979,7 +922,7 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 				{
 				  sprintf (rep,
 						   "FCP=%s SEQ=%i 400 Bad Request: %s must not be "
-                           "specified outside PME",
+							"specified outside PME",
 						   FCP_VERSION, seq, token_names[res]);
 				  *rep_input = rep;
 				  FCP_FREE_MEM return 1;
@@ -989,7 +932,7 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 				{
 				  sprintf (rep,
 						   "FCP=%s SEQ=%i 400 Bad Request: %s may be only used"
-                           " in SET directive",
+							" in SET directive",
 						   FCP_VERSION, seq, token_names[res]);
 				  *rep_input = rep;
 				  FCP_FREE_MEM return 1;
@@ -1013,7 +956,7 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 					{
 					  sprintf (rep,
 							   "FCP=%s SEQ=%i 400 Bad Request: %s may only be"
-                               " set to yes or no",
+								" set to yes or no",
 							   FCP_VERSION, seq, token_names[res]);
 					  *rep_input = rep;
 					  FCP_FREE_MEM return 1;
@@ -1021,7 +964,7 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 				  break;
 				case fcp_token_ICMPTYPE:
 					if ((ret = parse_icmp_type (pairs->value, &pme->icmp_type,
-																			&pme->icmp_code)) != 0)
+											&pme->icmp_code)) != 0)
 					{
 						if (ret == 1)
 							pme->icmp_type_def = 1;
@@ -1052,7 +995,7 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 					{
 					  sprintf (rep,
 							   "FCP=%s SEQ=%i 400 Bad Request: %s must be in, "
-                               "out, dmz or loopback",
+								"out, dmz or loopback",
 							   FCP_VERSION, seq, token_names[res]);
 					  *rep_input = rep;
 					  FCP_FREE_MEM return 1;
@@ -1072,7 +1015,7 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 					{
 					  sprintf (rep,
 							   "FCP=%s SEQ=%i 400 Bad Request: %s must be in, "
-                               "out, dmz or loopback",
+								"out, dmz or loopback",
 							   FCP_VERSION, seq, token_names[res]);
 					  *rep_input = rep;
 					  FCP_FREE_MEM return 1;
@@ -1097,7 +1040,7 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 						{
 						  sprintf (rep,
 								   "FCP=%s SEQ=%i 400 Bad Request: %s=1 makes "
-                                   "no sense in QUERYNAT",
+									"no sense in QUERYNAT",
 								   FCP_VERSION, seq, token_names[res]);
 						  *rep_input = rep;
 						  FCP_FREE_MEM return 1;
@@ -1114,28 +1057,12 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 					{
 					  sprintf (rep,
 							   "FCP=%s SEQ=%i 400 Bad Request: %s must be 1, "
-                               "6, 17 or 50 (ICMP,TCP, UDP or IPSEC)",
+								"6, 17 or 50 (ICMP,TCP, UDP or IPSEC)",
 							   FCP_VERSION, seq, token_names[res]);
 					  *rep_input = rep;
 					  FCP_FREE_MEM return 1;
 					}
 				}
-			  /* Packet modifier proto support commented out !!! else if
-			     ((in_where == fcp_in_PCKMODF) || ((in_where ==
-			     fcp_in_SETOPTS) && (fcp_packetmodifier_allowed))) { in_where
-			     = fcp_in_PCKMODF; fcp_packetmodifier_allowed = 0;
-			     sop->packet_modf.proto_def = 1; if (!strcmp (pairs->value,
-			     "1")) { if (req_type == fcp_req_type_QUERYNAT) { sprintf
-			     (rep, "FCP=%s SEQ=%i 400 Bad Request: %s=1 makes no sense in
-			     QUERYNAT command", FCP_VERSION, seq, token_names[res]);
-			     *rep_input = rep; fcp_free_mem return 1; }
-			     sop->packet_modf.proto = 1; } else if (!strcmp
-			     (pairs->value, "6")) sop->packet_modf.proto = 6; else if
-			     (!strcmp (pairs->value, "17")) sop->packet_modf.proto = 17;
-			     else { sprintf (rep, "FCP=%s SEQ=%i 400 Bad Request: %s must
-			     be 1, 6 or 17 (ICMP, TCP or UDP)", FCP_VERSION, seq,
-			     token_names[res]); *rep_input = rep; fcp_free_mem return 1;
-			     } } */
 			  else if (in_where == fcp_in_NATADDS)
 				{
 				  pme->proto_def = 1;
@@ -1145,7 +1072,7 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 						{
 						  sprintf (rep,
 								   "FCP=%s SEQ=%i 400 Bad Request: %s=1 makes "
-                                   "no sense in QUERYNAT",
+									"no sense in QUERYNAT",
 								   FCP_VERSION, seq, token_names[res]);
 						  *rep_input = rep;
 						  FCP_FREE_MEM return 1;
@@ -1154,7 +1081,7 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 						{
 						  sprintf (rep,
 								   "FCP=%s SEQ=%i 400 Bad Request: %s=1 makes "
-                                   "no sense in RELEASENAT",
+									"no sense in RELEASENAT",
 								   FCP_VERSION, seq, token_names[res]);
 						  *rep_input = rep;
 						  FCP_FREE_MEM return 1;
@@ -1169,7 +1096,7 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 					{
 					  sprintf (rep,
 							   "FCP=%s SEQ=%i 400 Bad Request: %s must be 6 or"
-                               " 17 (TCP or UDP)",
+								" 17 (TCP or UDP)",
 							   FCP_VERSION, seq, token_names[res]);
 					  *rep_input = rep;
 					  FCP_FREE_MEM return 1;
@@ -1179,7 +1106,7 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 				{
 				  sprintf (rep,
 						   "FCP=%s SEQ=%i 400 Bad Request: %s only allowed in "
-                           "PME or QUERYNAT statement",
+							"PME or QUERYNAT statement",
 						   FCP_VERSION, seq, token_names[res]);
 				  *rep_input = rep;
 				  FCP_FREE_MEM return 1;
@@ -1201,7 +1128,7 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 						{
 						  sprintf (rep,
 								   "FCP=%s SEQ=%i 400 Bad Request: %s must be of "
-	                               "type ip-adress",
+									"type ip-adress",
 								   FCP_VERSION, seq, token_names[res]);
 						  *rep_input = rep;
 						  FCP_FREE_MEM return 1;
@@ -1210,7 +1137,7 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 						{
 						  sprintf (rep,
 								   "FCP=%s SEQ=%i 400 Bad Request: %s must be of "
-	                               "type ip-adress",
+									"type ip-adress",
 								   FCP_VERSION, seq, token_names[res]);
 						  *rep_input = rep;
 						  FCP_FREE_MEM return 1;
@@ -1220,7 +1147,7 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 					{
 					  sprintf (rep,
 							   "FCP=%s SEQ=%i 400 Bad Request: %s must only be "
-	                           "specified in QUERYNAT or RELEASENAT statement",
+								"specified in QUERYNAT or RELEASENAT statement",
 							   FCP_VERSION, seq, token_names[res]);
 					  *rep_input = rep;
 					  FCP_FREE_MEM return 1;
@@ -1243,7 +1170,7 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 						{
 						  sprintf (rep,
 								   "FCP=%s SEQ=%i 400 Bad Request: %s must be of "
-	                               "type ip-adress[/netmask]",
+									"type ip-adress[/netmask]",
 								   FCP_VERSION, seq, token_names[res]);
 						  *rep_input = rep;
 						  FCP_FREE_MEM return 1;
@@ -1253,29 +1180,12 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 						{
 						  sprintf (rep,
 								   "FCP=%s SEQ=%i 400 Bad Request: %s must be of "
-	                               "type ip-adress[/netmask]",
+									"type ip-adress[/netmask]",
 								   FCP_VERSION, seq, token_names[res]);
 						  *rep_input = rep;
 						  FCP_FREE_MEM return 1;
 						}
 					}
-				  /* Packet modifier support for SCRIP commented out !!! else if
-			     ((in_where == fcp_in_PCKMODF) || ((in_where ==
-			     fcp_in_SETOPTS) && (fcp_packetmodifier_allowed))) { in_where
-			     = fcp_in_PCKMODF; fcp_packetmodifier_allowed = 0;
-
-			     ret = parse_ip_netmask (pairs->value,
-			     &sop->packet_modf.src_netmask); if ((ret != 0)) { sprintf
-			     (rep, "FCP=%s SEQ=%i 400 -xx- Bad Request: %s is not a valid
-			     ip-adress, netmask not allowed in PacketModifier",
-			     FCP_VERSION, seq, token_names[res]); *rep_input = rep;
-			     fcp_free_mem return 1; }
-
-			     sop->packet_modf.src_ip_def = 1; if (parse_ip_address
-			     (pairs->value, &sop->packet_modf.src_ip) == 0) { sprintf
-			     (rep, "FCP=%s SEQ=%i 400 -yy- Bad Request: %s is not a valid
-			     ip-adress", FCP_VERSION, seq, token_names[res]); *rep_input
-			     = rep; fcp_free_mem return 1; } } */
 				  else
 					{
 					  sprintf (rep,
@@ -1304,7 +1214,7 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 					{
 					  sprintf (rep,
 							   "FCP=%s SEQ=%i 400 Bad Request: %s must be of "
-                               "type ip-adress[/netmask]",
+								"type ip-adress[/netmask]",
 							   FCP_VERSION, seq, token_names[res]);
 					  *rep_input = rep;
 					  FCP_FREE_MEM return 1;
@@ -1314,31 +1224,17 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 					{
 					  sprintf (rep,
 							   "FCP=%s SEQ=%i 400 Bad Request: %s must be of "
-                               "type ip-adress[/netmask]",
+								"type ip-adress[/netmask]",
 							   FCP_VERSION, seq, token_names[res]);
 					  *rep_input = rep;
 					  FCP_FREE_MEM return 1;
 					}
 				}
-			  /* Packet modifier support for DSTIP commented out !!! else if
-			     ((in_where == fcp_in_PCKMODF) || ((in_where ==
-			     fcp_in_SETOPTS) && (fcp_packetmodifier_allowed))) { in_where
-			     = fcp_in_PCKMODF; fcp_packetmodifier_allowed = 0; ret =
-			     parse_ip_netmask (pairs->value,
-			     &sop->packet_modf.dst_netmask); if (ret != 0) { sprintf
-			     (rep, "FCP=%s SEQ=%i 400 Bad Request: %s is not a valid
-			     ip-adress, netmask not allowed in PacketModifier",
-			     FCP_VERSION, seq, token_names[res]); *rep_input = rep;
-			     fcp_free_mem return 1; } sop->packet_modf.dst_ip_def = 1; if
-			     (parse_ip_address (pairs->value, &sop->packet_modf.dst_ip)
-			     == 0) { sprintf (rep, "FCP=%s SEQ=%i 400 Bad Request: %s is
-			     not a valid ip-adress", FCP_VERSION, seq, token_names[res]);
-			     *rep_input = rep; fcp_free_mem return 1; } } */
 			  else
 				{
 				  sprintf (rep,
 						   "FCP=%s SEQ=%i 400 Bad Request: %s must be "
-                           "specified in PME",
+							"specified in PME",
 						   FCP_VERSION, seq, token_names[res]);
 				  *rep_input = rep;
 				  FCP_FREE_MEM return 1;
@@ -1412,16 +1308,6 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 								pme->src_uppt_def = 1;
 						}
 					}
-				  /* Packet modifier support for SRCPORT commented out !!! else
-			     if ((in_where == fcp_in_PCKMODF) || ((in_where ==
-			     fcp_in_SETOPTS) && (fcp_packetmodifier_allowed))) { in_where
-			     = fcp_in_PCKMODF; fcp_packetmodifier_allowed = 0;
-			     sop->packet_modf.src_pt_def = 1; if (!parse_tcp_ports
-			     (pairs->value, &(sop->packet_modf.src_pt),
-			     &(sop->packet_modf.src_uppt))) { sprintf (rep, "FCP=%s
-			     SEQ=%i 400 Bad Request: %s must be of type <port> |
-			     <port-range>", FCP_VERSION, seq, token_names[res]);
-			     *rep_input = rep; fcp_free_mem return 1; } } */
 					else
 					{
 						sprintf (rep,
@@ -1447,7 +1333,7 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 					{
 					  sprintf (rep,
 							   "FCP=%s SEQ=%i 400 Bad Request: %s must be of "
-                               "type <port> | <port-range>",
+								"type <port> | <port-range>",
 							   FCP_VERSION, seq, token_names[res]);
 					  *rep_input = rep;
 					  FCP_FREE_MEM return 1;
@@ -1458,21 +1344,11 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 						pme->dst_uppt_def = 1;
 					}
 				}
-			  /* Packet modifier support for DSTPORT commented out !!! else
-			     if ((in_where == fcp_in_PCKMODF) || ((in_where ==
-			     fcp_in_SETOPTS) && (fcp_packetmodifier_allowed))) { in_where
-			     = fcp_in_PCKMODF; fcp_packetmodifier_allowed = 0;
-			     sop->packet_modf.dst_pt_def = 1; if (!parse_tcp_ports
-			     (pairs->value, &(sop->packet_modf.dst_pt),
-			     &(sop->packet_modf.dst_uppt))) { sprintf (rep, "FCP=%s
-			     SEQ=%i 400 Bad Request: %s must be of type <port> |
-			     <port-range>", FCP_VERSION, seq, token_names[res]);
-			     *rep_input = rep; fcp_free_mem return 1; } } */
 			  else
 				{
 				  sprintf (rep,
 						   "FCP=%s SEQ=%i 400 Bad Request: %s must be "
-                           "specified in PME",
+							"specified in PME",
 						   FCP_VERSION, seq, token_names[res]);
 				  *rep_input = rep;
 				  FCP_FREE_MEM return 1;
@@ -1492,7 +1368,7 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 					{
 					  sprintf (rep,
 							   "FCP=%s SEQ=%i 400 Bad Request: %s must be 0 .."
-                               " 255",
+								" 255",
 							   FCP_VERSION, seq, token_names[res]);
 					  *rep_input = rep;
 					  FCP_FREE_MEM return 1;
@@ -1518,7 +1394,7 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 					{
 					  sprintf (rep,
 							   "FCP=%s SEQ=%i 400 Bad Request: %s must be 0 .."
-                               " 255",
+								" 255",
 							   FCP_VERSION, seq, token_names[res]);
 					  *rep_input = rep;
 					  FCP_FREE_MEM return 1;
@@ -1528,7 +1404,7 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 				{
 				  sprintf (rep,
 						   "FCP=%s SEQ=%i 400 Bad Request: %s must be "
-                           "specified in PME or PacketModifier",
+							"specified in PME or PacketModifier",
 						   FCP_VERSION, seq, token_names[res]);
 				  *rep_input = rep;
 				  FCP_FREE_MEM return 1;
@@ -1545,7 +1421,7 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 				{
 				  sprintf (rep,
 						   "FCP=%s SEQ=%i 400 Bad Request: %s must be "
-                           "specified in SetOptions",
+							"specified in SetOptions",
 						   FCP_VERSION, seq, token_names[res]);
 				  *rep_input = rep;
 				  FCP_FREE_MEM return 1;
@@ -1554,7 +1430,7 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 				{
 				  sprintf (rep,
 						   "FCP=%s SEQ=%i 400 Bad Request: %s is not allowed "
-                           "with RELEASE or QUERY",
+							"with RELEASE or QUERY",
 						   FCP_VERSION, seq, token_names[res]);
 				  *rep_input = rep;
 				  FCP_FREE_MEM return 1;
@@ -1582,7 +1458,7 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 				{
 				  sprintf (rep,
 						   "FCP=%s SEQ=%i 400 Bad Request: %s must be drop, "
-                           "pass or reject",
+							"pass or reject",
 						   FCP_VERSION, seq, token_names[res]);
 				  *rep_input = rep;
 				  FCP_FREE_MEM return 1;
@@ -1598,13 +1474,13 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 				{
 				  sprintf (rep,
 						   "FCP=%s SEQ=%i 400 Bad Request: %s must be "
-                           "specified after ACTION=reject",
+							"specified after ACTION=reject",
 						   FCP_VERSION, seq, token_names[res]);
 				  *rep_input = rep;
 				  FCP_FREE_MEM return 1;
 				}
 				if ((ret = parse_icmp_type (pairs->value, &sop->icmp_msg,
-																		&sop->icmp_msg_code)) != 0)
+										&sop->icmp_msg_code)) != 0)
 				{
 					if (ret == 1)
 						sop->icmp_msg_def = 1;
@@ -1634,7 +1510,7 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 				{
 				  sprintf (rep,
 						   "FCP=%s SEQ=%i 400 Bad Request: %s must be "
-                           "specified in SetOptions",
+							"specified in SetOptions",
 						   FCP_VERSION, seq, token_names[res]);
 				  *rep_input = rep;
 				  FCP_FREE_MEM return 1;
@@ -1643,7 +1519,7 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 				{
 				  sprintf (rep,
 						   "FCP=%s SEQ=%i 400 Bad Request: %s is not allowed "
-                           "with RELEASE or QUERY",
+							"with RELEASE or QUERY",
 						   FCP_VERSION, seq, token_names[res]);
 				  *rep_input = rep;
 				  FCP_FREE_MEM return 1;
@@ -1654,7 +1530,7 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 				{
 				  sprintf (rep,
 						   "FCP=%s SEQ=%i 400 Bad Request: %s must be 1 .. "
-                           "1000000 seconds",
+							"1000000 seconds",
 						   FCP_VERSION, seq, token_names[res]);
 				  *rep_input = rep;
 				  FCP_FREE_MEM return 1;
@@ -1673,7 +1549,7 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 				{
 				  sprintf (rep,
 						   "FCP=%s SEQ=%i 400 Bad Request: %s must be "
-                           "specified in SetOptions",
+							"specified in SetOptions",
 						   FCP_VERSION, seq, token_names[res]);
 				  *rep_input = rep;
 				  FCP_FREE_MEM return 1;
@@ -1691,7 +1567,7 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 				{
 				  sprintf (rep,
 						   "FCP=%s SEQ=%i 400 Bad Request: %s may only be set "
-                           "to yes or no",
+							"to yes or no",
 						   FCP_VERSION, seq, token_names[res]);
 				  *rep_input = rep;
 				  FCP_FREE_MEM return 1;
@@ -1710,7 +1586,7 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 				{
 				  sprintf (rep,
 						   "FCP=%s SEQ=%i 400 Bad Request: %s must be "
-                           "specified in SetOptions",
+							"specified in SetOptions",
 						   FCP_VERSION, seq, token_names[res]);
 				  *rep_input = rep;
 				  FCP_FREE_MEM return 1;
@@ -1722,7 +1598,7 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 				{
 				  sprintf (rep,
 						   "FCP=%s SEQ=%i 400 Bad Request: %s must be in range"
-                           " 1 .. %u",
+							" 1 .. %u",
 						   FCP_VERSION, seq, token_names[res],
 						   FCP_MAX_PRIORITY_CLASSES);
 				  *rep_input = rep;
@@ -1742,7 +1618,7 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 				{
 				  sprintf (rep,
 						   "FCP=%s SEQ=%i 400 Bad Request: %s must be "
-                           "specified in SetOptions",
+							"specified in SetOptions",
 						   FCP_VERSION, seq, token_names[res]);
 				  *rep_input = rep;
 				  FCP_FREE_MEM return 1;
@@ -1753,7 +1629,7 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 				{
 				  sprintf (rep,
 						   "FCP=%s SEQ=%i 400 Bad Request: %s must be in range"
-                           " from 1 to %i",
+							" from 1 to %i",
 						   FCP_VERSION, seq, token_names[res],
 						   FCP_MAX_LOG_CLASSES);
 				  *rep_input = rep;
@@ -1762,99 +1638,26 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 			  break;
 
 			case fcp_token_IP:
-/*			  if ((in_where == fcp_in_NATADDS) ||
-				  ((in_where == fcp_in_REQH) &&
-				   ((req_type == fcp_req_type_QUERYNAT) ||
-					(req_type == fcp_req_type_RELEASENAT))))
-				{
-				  in_where = fcp_in_NATADDS;
-				  // pme->src_ip_def = 1;
-				  if (!parse_ip_address
-					  (pairs->value, &(reserved->origin_ip)))
-					{
-					  sprintf (rep,
-							   "FCP=%s SEQ=%i 400 Bad Request: %s must be of "
-                               "type ip-adress",
-							   FCP_VERSION, seq, token_names[res]);
-					  *rep_input = rep;
-					  FCP_FREE_MEM return 1;
-					}
-				  if (parse_ip_netmask (pairs->value, &(pme->src_netmask)))
-					{
-					  sprintf (rep,
-							   "FCP=%s SEQ=%i 400 Bad Request: %s must be of "
-                               "type ip-adress",
-							   FCP_VERSION, seq, token_names[res]);
-					  *rep_input = rep;
-					  FCP_FREE_MEM return 1;
-					}
-				}
-			  else
-				{
-				  sprintf (rep,
-						   "FCP=%s SEQ=%i 400 Bad Request: %s must only be "
-                           "specified in QUERYNAT or RELEASENAT statement",
-						   FCP_VERSION, seq, token_names[res]);
-				  *rep_input = rep;
-				  FCP_FREE_MEM return 1;
-				} */
-			  sprintf (rep,
+				sprintf (rep,
 					   "FCP=%s SEQ=%i 400 Bad Request: %s is obsolete use %s instead",
 					   FCP_VERSION, seq, token_names[res], token_names[11]);
-			  *rep_input = rep;
-			  FCP_FREE_MEM
-			  return 1;
+				*rep_input = rep;
+				FCP_FREE_MEM
+				return 1;
 			  break;
 
 			case fcp_token_PORT:
-/*			  if (in_where == fcp_in_NATADDS)
-				{
-				  // pme->src_pt_def = 1
-				  if (!parse_tcp_ports
-					  (pairs->value, &(reserved->origin_port),
-					   &(reserved->origin_uppt)))
-					{
-					  sprintf (rep,
-							   "FCP=%s SEQ=%i 400 Bad Request: %s is invalid",
-							   FCP_VERSION, seq, token_names[res]);
-					  *rep_input = rep;
-					  FCP_FREE_MEM return 1;
-					}
-				}
-			  else
-				{
-				  if ((req_type != fcp_req_type_QUERYNAT) &&
-					  (req_type != fcp_req_type_RELEASENAT))
-					{
-					  sprintf (rep,
-							   "FCP=%s SEQ=%i 400 Bad Request: %s must only be"
-                               " specified in QUERYNAT or RELEASENAT statement",
-							   FCP_VERSION, seq, token_names[res]);
-					  *rep_input = rep;
-					  FCP_FREE_MEM return 1;
-					}
-				  else
-					{
-					  sprintf (rep,
-							   "FCP=%s SEQ=%i 400 Bad Request: %s must follow"
-                               " IP",
-							   FCP_VERSION, seq, token_names[res]);
-					  *rep_input = rep;
-					  FCP_FREE_MEM return 1;
-					}
-				} */
 				sprintf (rep,
 								"FCP=%s SEQ=%i 400 Bad Request: %s is obsolete use %s instead",
 								FCP_VERSION, seq, token_names[res], token_names[13]);
 				*rep_input = rep;
 				FCP_FREE_MEM
 				return 1;
-				break;
+			  break;
 
 			case fcp_token_UPPERPORT:
 			  if (in_where == fcp_in_NATADDS)
 				{
-				  // pme->dst_pt_def = 1;
 				  if (!parse_tcp_ports
 					  (pairs->value, &(reserved->origin_uppt),
 					   &(reserved->origin_uppt)))
@@ -1863,7 +1666,8 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 							   "FCP=%s SEQ=%i 400 Bad Request: %s is invalid",
 							   FCP_VERSION, seq, token_names[res]);
 					  *rep_input = rep;
-					  FCP_FREE_MEM return 1;
+					  FCP_FREE_MEM
+					  return 1;
 					}
 				}
 			  else
@@ -1873,19 +1677,21 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 					{
 					  sprintf (rep,
 							   "FCP=%s SEQ=%i 400 Bad Request: %s must only be"
-                               " specified in QUERYNAT or RELEASENAT statement",
+								" specified in QUERYNAT or RELEASENAT statement",
 							   FCP_VERSION, seq, token_names[res]);
 					  *rep_input = rep;
-					  FCP_FREE_MEM return 1;
+					  FCP_FREE_MEM
+					  return 1;
 					}
 				  else
 					{
 					  sprintf (rep,
 							   "FCP=%s SEQ=%i 400 Bad Request: %s must follow"
-                               " PORT",
+								" PORT",
 							   FCP_VERSION, seq, token_names[res]);
 					  *rep_input = rep;
-					  FCP_FREE_MEM return 1;
+					  FCP_FREE_MEM
+					  return 1;
 					}
 
 				}
@@ -1915,7 +1721,7 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 				  seq = 0;
 				  sprintf (rep,
 						   "FCP=%s SEQ=%i 400 Bad Request: %s value needs to "
-                           "be integer < 999999999",
+							"be integer < 999999999",
 						   FCP_VERSION, seq, token_names[res]);
 				  *rep_input = rep;
 				  FCP_FREE_MEM return 1;
@@ -1933,10 +1739,11 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 			  fcp_log (LOG_CRIT, debug_msg_helper);
 			  sprintf (rep,
 					   "FCP=%s SEQ=%i 400 Bad Request: internal error near %s"
-                       " - unknown token",
+						" - unknown token",
 					   FCP_VERSION, seq, token_names[res]);
 			  *rep_input = rep;
-			  FCP_FREE_MEM return 1;
+			  FCP_FREE_MEM
+			  return 1;
 
 			  break;
 			}
@@ -1945,10 +1752,11 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 			{
 			  sprintf (rep,
 					   "FCP=%s SEQ=%i 400 Bad Request: %s not allowed "
-                       "initially",
+						"initially",
 					   FCP_VERSION, seq, token_names[res]);
 			  *rep_input = rep;
-			  FCP_FREE_MEM return 1;
+			  FCP_FREE_MEM
+			  return 1;
 			}
 		}
 	  else
@@ -1963,7 +1771,8 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 		  sprintf (debug_msg_helper, "INTERPRET: exiting");
 		  fcp_log (LOG_DEBUG, debug_msg_helper);
 		  *rep_input = rep;
-		  FCP_FREE_MEM return 1;
+		  FCP_FREE_MEM
+		  return 1;
 		}
 	  pairs = pairs->next;
 	}
@@ -1980,7 +1789,8 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 	  fcp_log (LOG_ERR, debug_msg_helper);
 	  sprintf (rep, "FCP=%s SEQ=%i %s", FCP_VERSION, seq, errstr);
 	  *rep_input = rep;
-	  FCP_FREE_MEM free (errstr);
+	  FCP_FREE_MEM
+	  free (errstr);
 	  return 1;
 	}
   free (errstr);
@@ -2049,7 +1859,7 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 		     shouldn't make an API call for this state. */
 		  sprintf (rep,
 				   "FCP=%s SEQ=%i 203 Not My Route: source and destination IP"
-                   " are in the same network",
+					" are in the same network",
 				   FCP_VERSION, seq);
 		  *rep_input = rep;
 		  return 0;
@@ -2105,16 +1915,7 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
   else
 	state->direction = NOT_SET;
 
-  // /////////////////////////////////##
-  // /////////////////////////////////##
-  // /////////////////////////////////##
-  // /////////////////////////////////##
-  // /////////////////////////////////##
-  // /////////////////////////////////##
-  // /////////////////////////////////##
-  // /////////////////////////////////##
-  // /////////////////////////////////##
-  // /////////////////////////////////##
+  /* Everything should be interpreted here, now we execute what we got. */
 
   if (req_type == fcp_req_type_QUERYNAT)
 	{
@@ -2138,7 +1939,7 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 		  fcp_log (LOG_ERR, debug_msg_helper);
 		  sprintf (rep,
 				   "FCP=%s SEQ=%i 400 Bad Request: IP must be specified in "
-                   "QUERYNAT statement",
+					"QUERYNAT statement",
 				   FCP_VERSION, seq);
 		  *rep_input = rep;
 		  FCP_FREE_MEM free (errstr);
@@ -2151,7 +1952,7 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 		  fcp_log (LOG_ERR, debug_msg_helper);
 		  sprintf (rep,
 				   "FCP=%s SEQ=%i 400 Bad Request: PORT must be specified in "
-                   "QUERYNAT statement",
+					"QUERYNAT statement",
 				   FCP_VERSION, seq);
 		  *rep_input = rep;
 		  FCP_FREE_MEM free (errstr);
@@ -2165,7 +1966,7 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 		  fcp_log (LOG_ERR, debug_msg_helper);
 		  sprintf (rep,
 				   "FCP=%s SEQ=%i 400 Bad Request: PROTO must be specified in "
-                   "QUERYNAT statement",
+					"QUERYNAT statement",
 				   FCP_VERSION, seq);
 		  *rep_input = rep;
 		  FCP_FREE_MEM free (errstr);
@@ -2179,14 +1980,13 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 		  reservations = reservations->next;
 
 		  if ((reservations->res->origin_ip == reserved->origin_ip)	/* already
-																	   reserved?
-																	 */
+														   reserved? */
 			  && (reservations->res->origin_port == reserved->origin_port))
 			{
 
 			  sprintf (debug_msg_helper,
 					   "INTERPRET: IP/PORT already reserved, returning "
-                       "reservation anyway");
+						"reservation anyway");
 			  fcp_log (LOG_INFO, debug_msg_helper);
 
 			  doublestar = malloc (sizeof (char *));
@@ -2234,7 +2034,7 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 			{
 			  sprintf (debug_msg_helper,
 					   "INTERPRET: fcp_port_request API call failed - "
-                       "Reason: %s",
+						"Reason: %s",
 					   errstr);
 			  fcp_log (LOG_ERR, debug_msg_helper);
 			  sprintf (rep, "FCP=%s SEQ=%i %s", FCP_VERSION, seq, errstr);
@@ -2246,7 +2046,7 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 			{
 			  sprintf (debug_msg_helper,
 					   "INTERPRET: succesfully reserved IP=%i Port=%i-%i "
-                       "for origin IP=%i Port=%i-%i",
+						"for origin IP=%i Port=%i-%i",
 					   reserved->masq_ip, reserved->masq_port,
 					   reserved->masq_uppt, reserved->origin_ip,
 					   reserved->origin_port, reserved->origin_uppt);
@@ -2320,9 +2120,7 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 
 			  *rep_input = rep;
 			  fcp_log (LOG_DEBUG, "INTERPRET: exiting");
-/* memory leak ?? *future* *//* hope it's fixed */
 			  free (pme);
-			  // free(sop->packet_modf);
 			  free (sop);
 			  free (state->owner_ip);
 			  free (state);
@@ -2355,8 +2153,6 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 		}
 	}							/* end QUERY_NAT */
 
-  // /////////////////////////////////##
-
 
   if (req_type == fcp_req_type_RELEASENAT)
 	{
@@ -2377,7 +2173,7 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 		  fcp_log (LOG_ERR, debug_msg_helper);
 		  sprintf (rep,
 				   "FCP=%s SEQ=%i 400 Bad Request: IP must be specified in "
-                   "RELEASENAT statement",
+					"RELEASENAT statement",
 				   FCP_VERSION, seq);
 		  *rep_input = rep;
 		  FCP_FREE_MEM free (errstr);
@@ -2390,7 +2186,7 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 		  fcp_log (LOG_ERR, debug_msg_helper);
 		  sprintf (rep,
 				   "FCP=%s SEQ=%i 400 Bad Request: PORT must be specified in "
-                   "RELEASENAT statement",
+					"RELEASENAT statement",
 				   FCP_VERSION, seq);
 		  *rep_input = rep;
 		  FCP_FREE_MEM free (errstr);
@@ -2404,7 +2200,7 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 		  fcp_log (LOG_ERR, debug_msg_helper);
 		  sprintf (rep,
 				   "FCP=%s SEQ=%i 400 Bad Request: PROTO must be specified in "
-                   "RELEASENAT statement",
+					"RELEASENAT statement",
 				   FCP_VERSION, seq);
 		  *rep_input = rep;
 		  FCP_FREE_MEM free (errstr);
@@ -2432,7 +2228,7 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 				{
 				  sprintf (debug_msg_helper,
 						   "INTERPRET: fcp_port_release API call failed - "
-                           "Reason: %s",
+							"Reason: %s",
 						   errstr);
 				  fcp_log (LOG_ERR, debug_msg_helper);
 				  sprintf (rep, "FCP=%s SEQ=%i %s", FCP_VERSION, seq, errstr);
@@ -2444,7 +2240,7 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 				{
 				  sprintf (debug_msg_helper,
 						   "INTERPRET: succesfully released IP=%i Port=%i-"
-                           "%i for origin IP=%i Port=%i-%i",
+							"%i for origin IP=%i Port=%i-%i",
 						   reservations->res->masq_ip,
 						   reservations->res->masq_port,
 						   reservations->res->masq_uppt, reserved->origin_ip,
@@ -2489,12 +2285,10 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 				  sprintf (rep, "FCP=%s SEQ=%i 200 OK", FCP_VERSION, seq);
 				  *rep_input = rep;
 				  fcp_log (LOG_DEBUG, "INTERPRET: exiting");
-/* memory leak ?? *future* *//* hope it's fixed */
 				  free (pme);
 				  free (sop);
 				  free (state->owner_ip);
 				  free (state);
-				  // free(sop->packet_modf);
 				  free (errstr);
 				  free (reserved);
 				  return ret;
@@ -2510,7 +2304,6 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 	  return 1;
 
 	}
-  // /////////////////////////////////##
 
   if (req_type == fcp_req_type_QUERY)
 	{
@@ -2552,7 +2345,6 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 			  if (states->state->pme->src_ip_def)
 				{
 				  doublestar = malloc (sizeof (char *));
-				  // *doublestar = malloc (20);
 
 				  ip2str (states->state->pme->src_ip, doublestar);
 				  sprintf (rep_hlp, "SRCIP=%s", *doublestar);
@@ -2571,7 +2363,6 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 			  if (states->state->pme->dst_ip_def)
 				{
 				  doublestar = malloc (sizeof (char *));
-				  // *doublestar = malloc (20);
 				  ip2str (states->state->pme->dst_ip, doublestar);
 				  sprintf (rep_hlp, "DSTIP=%s", *doublestar);
 				  rep = strcat (rep, rep_hlp);
@@ -2736,13 +2527,9 @@ int interpret (struct name_value *pairs, char **rep_input, char *owner)
 	  free (reserved);
 	}							/* RELEASE */
 
-  /* we don't need this because the reply will be build everywhere else if
-     (!ret) sprintf (rep, "FCP=%s SEQ=%i 200 OK", FCP_VERSION, seq); */
   *rep_input = rep;
   fcp_log (LOG_DEBUG, "INTERPRET: exiting");
 
-  /* TODO: free allocated structures here too -- i think it's all to be freed
-   */
-  return ret;					/* no errors, all tokens known and request ok
-								 */
+  /* no errors, all tokens known and request ok */
+  return ret;	
 };

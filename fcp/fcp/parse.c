@@ -117,8 +117,6 @@ int parse (char *in_buf, int len, struct name_value *ret, char *err)
 		   len);
   fcp_log (LOG_DEBUG, debug_msg_helper);
 
-  // token[tokcount] = '\0';
-
   context = FCP_PARSER_CONTEXT_NOCONTEXT;
   ctl = 0;
   eol_found = 0;
@@ -271,11 +269,6 @@ int parse (char *in_buf, int len, struct name_value *ret, char *err)
 		}						/* end of switch */
 	}							/* end of for */
 
-  /* <debug> !! tclwrtcp = tclb; while (tclwrtcp->next != NULL) { tclwrtcp =
-     tclwrtcp->next; sprintf (debug_msg_helper,"DGB1: token: \"%s\", context
-     %i,",tclwrtcp->token, tclwrtcp->context); fcp_log (LOG_DEBUG,
-     debug_msg_helper); } </debug> !! */
-
   /* ******************************* */
   /* interpreter preserver patch ON: */
 
@@ -325,11 +318,6 @@ int parse (char *in_buf, int len, struct name_value *ret, char *err)
 			}
 		}
 	}
-
-  /* <debug> !! tclwrtcp = tclb; while (tclwrtcp->next != NULL) { tclwrtcp =
-     tclwrtcp->next; sprintf (debug_msg_helper,"DGB2: token: \"%s\", context
-     %i,",tclwrtcp->token, tclwrtcp->context); fcp_log (LOG_DEBUG,
-     debug_msg_helper); } </debug> !! */
 
   tclwrtcp = tclb;
   while (tclwrtcp->next)

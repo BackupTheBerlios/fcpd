@@ -142,8 +142,8 @@ void srv_listen (void)
 			{
 			  reply = malloc (sizeof (char *));
 
-			  /* running parse and interpret - if one fails do nothing and */
-			  /* return error to the connection */
+			  /* running parse and interpret - if one fails do nothing and
+			    return error to the connection */
 			  if (!parse
 				  (request, strlen (request), name_value_struct, error))
 				{
@@ -364,7 +364,7 @@ static void sig_alarm ()
 							{
 							  sprintf (debug_msg_helper,
 									   "MAIN: sig_alarm: automatic deleting of"
-                                       " port reservation failed with %s",
+										" port reservation failed with %s",
 									   api_error);
 							  fcp_log (LOG_ERR, debug_msg_helper);
 							}
@@ -374,7 +374,7 @@ static void sig_alarm ()
 						  free (alarm_list->my_reserved);
 						  fcp_log (LOG_DEBUG,
 								   "MAIN: sig_alarm: deleting of reservation "
-                                   "complete");
+									"complete");
 						}
 					  /* freeing the memory of the deleted state */
 					  free (alarm_list->state->pme);
@@ -384,7 +384,7 @@ static void sig_alarm ()
 					  free (alarm_list);
 					  fcp_log (LOG_DEBUG,
 							   "MAIN: sig_alarm: deleting of rule and state "
-                               "complete");
+								"complete");
 					  /* step to next element in time list */
 					  alarm_list = state_list_base->time_next;
 					}
@@ -392,7 +392,7 @@ static void sig_alarm ()
 					{
 					  sprintf (debug_msg_helper,
 							   "MAIN: sig_alarm: automatic deleting of rule "
-                               "failed with %s",
+								"failed with %s",
 							   api_error);
 					  fcp_log (LOG_ERR, debug_msg_helper);
 					  /* what should we do with the state of this rule? we
@@ -534,7 +534,7 @@ int main (int argc, char *argv[])
 				  "  -v prints out protocol version number and exits\n\n"
 				  "example: %s -d -l 7 -f /etc/fcpd.conf.2 \n"
 				  "  this runs the server in non-damon mode with full "
-                  "debugging\n"
+				  "debugging\n"
 				  "  using non-default config file /etc/fcpd.conf.2\n\n",
 				  argv[0], argv[0]);
 		  return (0);

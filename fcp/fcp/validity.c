@@ -20,10 +20,10 @@
 #include "validity.h"
 #include "debug.h"
 
-/* this function take a state which has been interpreted and checks for */
-/* inconsistencies.  */
-/* return value of 0 means validity - 1 means error */
-/* in case of error: repl contains the reply with the error message */
+/* this function take a state which has been interpreted and checks for
+   inconsistencies.
+   return value of 0 means validity - 1 means error
+   in case of error: repl contains the reply with the error message */
 int check_validity (struct fcp_state *st, char *repl)
 {
   if (st->pme->icmp_type_def && (st->pme->proto == 6 || st->pme->proto == 17))

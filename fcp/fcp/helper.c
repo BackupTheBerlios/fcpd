@@ -92,11 +92,11 @@ void time_list_remove (struct state_list *state)
   state->distance_ttl = 0;
 }
 
-/* Small help func takes ip-adress-string, determines its validity */
-/* and write the integer represantation at address.  */
-/* Returns 1 if succseful converted, 0 if the dotted isn't valid.  */
-/* If you want to parse IP/netmask pairs, call parse_ip_netmask */
-/* first - it will remove the netmask, then use this func */
+/* Small help func takes ip-adress-string, determines its validity
+   and write the integer represantation at address.
+   Returns 1 if succseful converted, 0 if the dotted isn't valid.
+   If you want to parse IP/netmask pairs, call parse_ip_netmask
+   first - it will remove the netmask, then use this func */
 int parse_ip_address (char *c, unsigned int *address)
 {
   int quat, i, j, digit_bol;
@@ -170,11 +170,11 @@ int parse_ip_address (char *c, unsigned int *address)
 	return 0;
 }
 
-/* Small help func takes ip-adress-string, determines if a valid */
-/* netmask is specified and inserts the netmask into mask.  */
-/* Cuts of the netmask of the string, if it founds a netmask !!! */
-/* Returns 0 if no netmaks found, -1 if netmaks isn't valid, and */
-/* 1 if sucsessful.  */
+/* Small help func takes ip-adress-string, determines if a valid
+   netmask is specified and inserts the netmask into mask.
+   Cuts of the netmask of the string, if it founds a netmask !!!
+   Returns 0 if no netmaks found, -1 if netmaks isn't valid, and
+   1 if sucsessful.  */
 int parse_ip_netmask (char *c, unsigned int *mask)
 {
   char *p, *q;
@@ -205,11 +205,11 @@ int parse_ip_netmask (char *c, unsigned int *mask)
 	}
 }
 
-/* Small help func takes ip-port-string, determines if a valid */
-/* port or range is specified and inserts the results into */
-/* lower- and upperport. If it is one port, upperport will */
-/* have the same value like the lowerport.  */
-/* Returns 0 if something is wrong, and 1 if everything is ok. */
+/* Small help func takes ip-port-string, determines if a valid
+   port or range is specified and inserts the results into
+   lower- and upperport. If it is one port, upperport will
+   have the same value like the lowerport.
+   Returns 0 if something is wrong, and 1 if everything is ok. */
 int parse_tcp_ports (char *c, unsigned int *lowerport,
 					 unsigned int *upperport)
 {
@@ -279,8 +279,8 @@ int parse_tcp_ports (char *c, unsigned int *lowerport,
 	}
 }
 
-/* Small help func takes ip-adress-integer and returns string */
-/* representation */
+/* Small help func takes ip-adress-integer and returns string
+   representation */
 void ip2str (unsigned int address, char **rr)
 {
   int i;
@@ -345,8 +345,6 @@ struct name_value *scan_csv (char *string)
 	  ret->name = NULL;
 	  ret->value = NULL;
 	  this = ret;
-	  // this->next = NULL;
-	  // this->name = this->value = NULL;
 
 	  /* check if the is any comma in the string */
 	  if ((comma = strchr (str, ',')) == NULL)
